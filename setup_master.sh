@@ -195,14 +195,11 @@ PKGS_AUR=(
 BUNDLE_REPO=(
     vlc vlc-plugins-all             # multimedia (Arch dividió vlc en jul-2025; -all = todos los códecs)
     imv                             # visor de imagenes (Wayland-native, ligero)
-    gimp                            # editor de imagenes tipo Photoshop
     steam                           # requiere multilib (activo en CachyOS); fix de tiling en rules.kdl
-    discord
     obs-studio
 )
 BUNDLE_AUR=(
     zen-browser-bin                 # navegador
-    youtube-music-for-desktop-bin   # YouTube Music
     onlyoffice-bin                  # OnlyOffice
     vscodium-bin                    # VSCodium (VS Code sin telemetría)
 )
@@ -955,41 +952,41 @@ NOCTALIA_SETTINGS="$HOME/.config/noctalia/settings.json"
 if write_if_changed "$NOCTALIA_SCHEME_DIR/Kyu OS.json" "Color scheme 'Kyu OS'" << 'NOCTALIA_EOF'
 {
   "dark": {
-    "mPrimary": "#8B20D4", "mOnPrimary": "#F0E6FF",
-    "mSecondary": "#5C2A9A", "mOnSecondary": "#F0E6FF",
-    "mTertiary": "#B040F0", "mOnTertiary": "#07040F",
-    "mError": "#F472B6", "mOnError": "#07040F",
-    "mSurface": "#07040F", "mOnSurface": "#C084FC",
-    "mSurfaceVariant": "#1E1240", "mOnSurfaceVariant": "#C084FC",
-    "mOutline": "#2D1A58", "mShadow": "#07040F",
-    "mHover": "#0E0820", "mOnHover": "#F0E6FF",
+    "mPrimary": "#8b45f7", "mOnPrimary": "#18092b",
+    "mSecondary": "#c44fe6", "mOnSecondary": "#18092b",
+    "mTertiary": "#e85fb0", "mOnTertiary": "#18092b",
+    "mError": "#fb5c7e", "mOnError": "#18092b",
+    "mSurface": "#18092b", "mOnSurface": "#b88cf2",
+    "mSurfaceVariant": "#261146", "mOnSurfaceVariant": "#a784dd",
+    "mOutline": "#5031a0", "mShadow": "#0c0520",
+    "mHover": "#381a5e", "mOnHover": "#b88cf2",
     "terminal": {
-      "foreground": "#E1D5E7", "background": "#1A1025",
-      "selectionFg": "#E1D5E7", "selectionBg": "#2D1B40",
-      "cursorText": "#1A1025", "cursor": "#E1D5E7",
-      "normal": { "black": "#1A1025", "red": "#CF6679", "green": "#7B4FA0", "yellow": "#A855F7",
-                  "blue": "#6D28D9", "magenta": "#C084FC", "cyan": "#E9D5FF", "white": "#E1D5E7" },
-      "bright": { "black": "#2D1B40", "red": "#F48FB1", "green": "#9D6AC9", "yellow": "#CE93D8",
-                  "blue": "#7C4DFF", "magenta": "#D8B4FE", "cyan": "#F3E8FF", "white": "#FFFFFF" }
+      "foreground": "#b88cf2", "background": "#1c0e33",
+      "selectionFg": "#b88cf2", "selectionBg": "#5031a0",
+      "cursorText": "#1c0e33", "cursor": "#8b45f7",
+      "normal": { "black": "#381a5e", "red": "#fb5c7e", "green": "#5ee6a0", "yellow": "#f5c453",
+                  "blue": "#8b7dff", "magenta": "#c44fe6", "cyan": "#5fd6e0", "white": "#a784dd" },
+      "bright": { "black": "#5031a0", "red": "#ff7492", "green": "#74f0b0", "yellow": "#ffd56a",
+                  "blue": "#a99cff", "magenta": "#da6ff0", "cyan": "#7fe4ec", "white": "#b88cf2" }
     }
   },
   "light": {
-    "mPrimary": "#6B1AB8", "mOnPrimary": "#F5EEFF",
-    "mSecondary": "#8B48CC", "mOnSecondary": "#F5EEFF",
-    "mTertiary": "#BF94F5", "mOnTertiary": "#1A0430",
-    "mError": "#F472B6", "mOnError": "#1A0430",
-    "mSurface": "#F5EEFF", "mOnSurface": "#1A0430",
-    "mSurfaceVariant": "#D0ACFF", "mOnSurfaceVariant": "#3D1A6A",
-    "mOutline": "#BF94F5", "mShadow": "#1A0430",
-    "mHover": "#EBD9FF", "mOnHover": "#1A0430",
+    "mPrimary": "#7b2fe0", "mOnPrimary": "#f3ecfd",
+    "mSecondary": "#b23bd0", "mOnSecondary": "#f3ecfd",
+    "mTertiary": "#d44e9e", "mOnTertiary": "#f3ecfd",
+    "mError": "#e03a63", "mOnError": "#f3ecfd",
+    "mSurface": "#f3ecfd", "mOnSurface": "#2a1750",
+    "mSurfaceVariant": "#e5d8f7", "mOnSurfaceVariant": "#5a4684",
+    "mOutline": "#c3aee8", "mShadow": "#ddcff0",
+    "mHover": "#e0d0f5", "mOnHover": "#2a1750",
     "terminal": {
-      "foreground": "#1A0430", "background": "#F5EEFF",
-      "selectionFg": "#1A0430", "selectionBg": "#D0ACFF",
-      "cursorText": "#F5EEFF", "cursor": "#1A0430",
-      "normal": { "black": "#1A0430", "red": "#F472B6", "green": "#6FB58F", "yellow": "#BF94F5",
-                  "blue": "#6B1AB8", "magenta": "#8B48CC", "cyan": "#BF94F5", "white": "#1A0430" },
-      "bright": { "black": "#3D1A6A", "red": "#FF8CB3", "green": "#85D7A8", "yellow": "#D0ACFF",
-                  "blue": "#8A56D4", "magenta": "#BF94F5", "cyan": "#D8B4FF", "white": "#120F1F" }
+      "foreground": "#2a1750", "background": "#e5d8f7",
+      "selectionFg": "#2a1750", "selectionBg": "#c3aee8",
+      "cursorText": "#e5d8f7", "cursor": "#7b2fe0",
+      "normal": { "black": "#5a4684", "red": "#e03a63", "green": "#1f9d6b", "yellow": "#b5851d",
+                  "blue": "#5a3fd0", "magenta": "#b23bd0", "cyan": "#1d8a99", "white": "#c3aee8" },
+      "bright": { "black": "#7a66a4", "red": "#e03a63", "green": "#1f9d6b", "yellow": "#b5851d",
+                  "blue": "#5a3fd0", "magenta": "#b23bd0", "cyan": "#1d8a99", "white": "#e0d0f5" }
     }
   }
 }
@@ -1010,8 +1007,8 @@ if [ -f "$CONFIG_DIR/noctalia/settings.json" ]; then
     sed -i -e 's/"predefinedScheme": *"[^"]*"/"predefinedScheme": "Kyu OS"/' \
            -e 's/"useWallpaperColors": *true/"useWallpaperColors": false/' \
            -e 's/"use12hourFormat": *false/"use12hourFormat": true/' \
-           -e "s#/home/kyu/Documentos/Configs/Wallpapers#$SCRIPT_DIR/Wallpapers#g" \
-           -e "s#/home/kyu/Documentos/Configs/PFP#$SCRIPT_DIR/PFP#g" \
+           -e "s#/home/kyu/kyu-os/Wallpapers#$SCRIPT_DIR/Wallpapers#g" \
+           -e "s#/home/kyu/kyu-os/PFP#$SCRIPT_DIR/PFP#g" \
            "$_ns_tmp"
     # Backup de la versión previa solo si de verdad vamos a pisarla con algo distinto.
     if [ -f "$NOCTALIA_SETTINGS" ] && ! diff -q "$_ns_tmp" "$NOCTALIA_SETTINGS" &>/dev/null; then
@@ -1060,7 +1057,7 @@ ascii_art = r"""                         %
             %####   ##########%  %####            
                %###################               
                     %%%####%%%                    """
-C1='\033[38;2;206;147;216m'; C2='\033[38;2;123;31;162m'; RST='\033[0m'
+C1='\033[38;2;255;255;255m'; C2='\033[38;2;255;255;255m'; RST='\033[0m'
 lines=[]
 for line in ascii_art.split('\n'):
     s=''
@@ -1073,6 +1070,7 @@ python3 << 'PYEOF' | write_if_changed "$HOME/.config/fastfetch/config.jsonc" "Co
 import os, json, sys
 config={"$schema":"https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
   "logo":{"source":"~/.config/fastfetch/logo.txt","type":"file","padding":{"right":4}},
+  "display":{"color":{"keys":"38;2;200;166;249","title":"38;2;255;255;255","output":"38;2;255;255;255","separator":"38;2;255;255;255"},"percent":{"color":{"green":"38;2;255;255;255","yellow":"38;2;255;255;255","red":"38;2;255;255;255"}}},
   "modules":[{"type":"os","key":"OS","format":"Kyu OS"},"host","kernel","uptime","packages",
     "shell","display","wm","theme","font","cursor","terminal","terminalfont","cpu","gpu",
     "memory","swap",{"type":"disk","folders":"/"},{"type":"localip","showIpv4":True},
@@ -1128,8 +1126,8 @@ local APPDIR="$HOME/.local/share/applications"
 local MARK="X-Kyu-Launcher-Hide=1"
 mkdir -p "$APPDIR"
 
-# Visibles (por NO estar en la lista): VSCodium, Discord, ONLYOFFICE, VLC, YouTube
-# Music, Thunar (gestor) + flatpak Sober y Zen (AUR). Todo lo de abajo se oculta.
+# Visibles (por NO estar en la lista): VSCodium, ONLYOFFICE, VLC, Thunar (gestor)
+# + flatpak Sober y Zen (AUR). Todo lo de abajo se oculta.
 local -a OCULTAR=(
     # --- no son apps / utilerias de sistema ---
     avahi-discover bssh bvnc        # navegadores Avahi (Zeroconf/SSH/VNC)
@@ -1198,7 +1196,7 @@ def find_id(*pats):
     return None
 
 zen = find_id("zen.desktop","zen-browser.desktop","zen*.desktop") or "zen"
-DOCK = ["discord", zen, "youtube-music-for-desktop", "steam",
+DOCK = [zen, "steam",
         "onlyoffice-desktopeditors", "codium", "thunar", "org.vinegarhq.Sober"]
 
 ch=[False]
@@ -1218,7 +1216,7 @@ else: print("ok")
 PYEOF
 )
     case "$_r" in
-        cambiado) did "Anclados: launcher vacío y dock fijado (discord, zen, yt music, steam, onlyoffice, vscodium, archivos, sober)." ;;
+        cambiado) did "Anclados: launcher vacío y dock fijado (zen, steam, onlyoffice, vscodium, archivos, sober)." ;;
         ok)       skip "Anclados: ya estaban como se quieren." ;;
         *)        nota "No pude procesar settings.json de Noctalia (anclados sin tocar)." ;;
     esac
@@ -1291,7 +1289,7 @@ fi
 # SECCIÓN «cursor» — CURSOR MORADO (Bibata) — lo lento
 # ============================================================
 sec_cursor() {
-CURSOR_COLOR="#8B20D4"; CURSOR_THEME="Bibata-Modern-Purple"; CURSOR_SIZE=24
+CURSOR_COLOR="#8b45f7"; CURSOR_THEME="Bibata-Modern-Purple"; CURSOR_SIZE=24
 SOURCE_THEME="Bibata-Modern-Classic"; DEST="$HOME/.icons/$CURSOR_THEME"
 
 # Recolorear cada cursor frame por frame es LO LENTO. Si ya esta generado, se
