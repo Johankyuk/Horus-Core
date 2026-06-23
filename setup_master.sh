@@ -378,7 +378,7 @@ mostrar_plan() {
 # REGISTRO DE SECCIONES (para el flujo normal y para --solo)
 # ============================================================
 # Orden canónico de ejecución. --solo acepta estos nombres o su número.
-SECCIONES=(snapshot update repos aur opcionales configs generables launcher gtk cursor sddm branding steam recursos proyeccion)
+SECCIONES=(snapshot update repos aur flatpak opcionales configs generables launcher gtk cursor sddm branding steam recursos proyeccion zen)
 declare -A SEC_DESC=(
     [snapshot]="Snapshot pre-setup"
     [update]="Actualizar sistema"
@@ -395,6 +395,8 @@ declare -A SEC_DESC=(
     [steam]="Steam (wrapper anti-pantalla-negra del cliente)"
     [recursos]="Recursos + batería"
     [proyeccion]="Utilidad de proyección"
+    [flatpak]="Flatpak + remoto Flathub"
+    [zen]="Navegador Zen: tema Horus, prefs y extensiones"
 )
 # Qué necesita cada sección. Con --solo, si NINGUNA de las elegidas requiere
 # sudo no se pide password ni keep-alive (p.ej. --solo=proyeccion corre sin
@@ -402,10 +404,10 @@ declare -A SEC_DESC=(
 # 'recursos' solo usa sudo para el servicio de batería: hereda DO_BATERIA.
 declare -A SEC_SUDO=( [snapshot]=1 [update]=1 [repos]=1 [aur]=1 [opcionales]=1
     [configs]=1 [generables]=0 [launcher]=0 [gtk]=0 [cursor]=0 [sddm]=1 [branding]=1 [steam]=1
-    [recursos]=$DO_BATERIA [proyeccion]=0 )
+    [recursos]=$DO_BATERIA [proyeccion]=0 [flatpak]=1 [zen]=1 )
 declare -A SEC_RED=(  [snapshot]=0 [update]=1 [repos]=1 [aur]=1 [opcionales]=1
     [configs]=0 [generables]=0 [launcher]=0 [gtk]=0 [cursor]=0 [sddm]=0 [branding]=0
-    [steam]=0 [recursos]=0 [proyeccion]=0 )
+    [steam]=0 [recursos]=0 [proyeccion]=0 [flatpak]=1 [zen]=0 )
 
 _tabla_secciones() {
     local i=1 sec
@@ -1990,6 +1992,72 @@ chmod +x "$HOME/.local/bin/proyectar" 2>/dev/null || true
 
 # ============================================================
 # EJECUCIÓN DE LAS SECCIONES SELECCIONADAS
+
+# ============================================================
+# SECCIÓN «flatpak» — utilidades Flatpak + remoto Flathub
+# ============================================================
+sec_flatpak() {
+    if command -v flatpak &>/dev/null || pacman -Qq flatpak &>/dev/null; then
+        skip "Flatpak ya estaba instalado."
+    else
+        sudo pacman -S --needed --noconfirm flatpak && did "Flatpak instalado."
+    fi
+    if flatpak remotes 2>/dev/null | grep -q '^flathub'; then
+        skip "Remoto Flathub ya configurado."
+    else
+        sudo flatpak remote-add --if-not-exists flathub \
+            https://dl.flathub.org/repo/flathub.flatpakrepo \
+            && did "Remoto Flathub agregado."
+    fi
+}
+
+# ============================================================
+# SECCIÓN «zen» — tema Horus para Zen (chrome, prefs, extensiones)
+#   policies.json -> /opt/zen-browser-bin/distribution (sudo)
+#   user.js + CSS -> todos los perfiles de ~/.zen (nombres con espacios)
+#   Dark Reader (config/zen/darkreader-horus.json) se IMPORTA a mano.
+# ============================================================
+sec_zen() {
+    local src="${KYU_OS_DIR:-$HOME/kyu-os}/config/zen"
+    local zen_dir="$HOME/.zen" ini="$HOME/.zen/profiles.ini"
+    local zen_install="" c
+    for c in /opt/zen-browser-bin "$HOME/.tarball-installations/zen" /opt/zen "$HOME/.zen-browser"; do
+        [ -d "$c" ] && zen_install="$c" && break
+    done
+    if [ -z "$zen_install" ]; then
+        skip "Zen no instalado; sección zen omitida (instala zen-browser-bin y corre --solo=zen)."
+        return 0
+    fi
+    local dest="$zen_install/distribution"
+    if [ -f "$dest/policies.json" ] && cmp -s "$src/policies.json" "$dest/policies.json"; then
+        skip "policies.json de Zen ya estaba al día."
+    else
+        sudo mkdir -p "$dest" && sudo cp -f "$src/policies.json" "$dest/policies.json" \
+            && did "policies.json de Zen desplegado (extensiones + telemetría)."
+    fi
+    if [ ! -f "$ini" ]; then
+        nota "Zen sin perfil aún. Abre Zen una vez y corre: kyu-solo zen."
+        return 0
+    fi
+    local perfiles=() rel dir count=0
+    mapfile -t perfiles < <(awk '/^\[Profile/{i=1;next}/^\[/{i=0} i&&/^Path=/{sub(/^Path=/,"");sub(/\r$/,"");print}' "$ini")
+    for rel in "${perfiles[@]}"; do
+        case "$rel" in /*) dir="$rel";; *) dir="$zen_dir/$rel";; esac
+        [ -d "$dir" ] || continue
+        mkdir -p "$dir/chrome"
+        cp -f "$src/userChrome.css"  "$dir/chrome/userChrome.css"
+        cp -f "$src/userContent.css" "$dir/chrome/userContent.css"
+        cp -f "$src/user.js"         "$dir/user.js"
+        count=$((count+1))
+    done
+    if [ "$count" -gt 0 ]; then
+        did "Tema Horus desplegado en $count perfil(es) de Zen."
+        nota "Dark Reader: importa config/zen/darkreader-horus.json (Manage settings → Import)."
+    else
+        nota "Ningún perfil de Zen en disco; abre Zen y reintenta."
+    fi
+}
+
 # ============================================================
 _idx=1
 for _t in "${SELECCION[@]}"; do
