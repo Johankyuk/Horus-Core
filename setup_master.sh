@@ -961,7 +961,7 @@ if write_if_changed "$NOCTALIA_SCHEME_DIR/Kyu OS.json" "Color scheme 'Kyu OS'" <
     "mOutline": "#5031a0", "mShadow": "#0c0520",
     "mHover": "#381a5e", "mOnHover": "#b88cf2",
     "terminal": {
-      "foreground": "#ffffff", "background": "#1c0e33",
+      "foreground": "#ede6ff", "background": "#1c0e33",
       "selectionFg": "#b88cf2", "selectionBg": "#5031a0",
       "cursorText": "#1c0e33", "cursor": "#8b45f7",
       "normal": { "black": "#381a5e", "red": "#fb5c7e", "green": "#5ee6a0", "yellow": "#f5c453",
