@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# ============================================================
+# Autor: Kyu
+# kyu-power-hook — aplica el power-limit de la dGPU según el perfil de energía.
+#
+# Corre como servicio root y vigila /sys/firmware/acpi/platform_profile (lo que
+# cambia Noctalia/PPD al tocar el toggle de energía). Cuando el perfil cambia,
+# fija el power-limit de la NVIDIA que le corresponde — sin que tengas que correr
+# kyu-power a mano.
+#
+# Las curvas de ventilador NO se tocan aquí: asusd ya aplica la curva de cada
+# perfil al cambiar. Esto solo cubre lo único que no sigue al perfil: el -pl de
+# la dGPU. (El modo dGPU-apagada de "ahorro real" sigue siendo manual con
+# `kyu-power ahorro`, porque cambiar el modo de GPU cierra sesión.)
+# ============================================================
+set -uo pipefail
+
+PROF_FILE=/sys/firmware/acpi/platform_profile
+# Watts por perfil. performance=60 (lo que pediste); quiet capa más bajo el techo;
+# balanced vuelve al default. Ajusta a gusto.
+declare -A PL=( [quiet]=30 [balanced]=55 [performance]=60 )
+
+command -v nvidia-smi >/dev/null || { echo "Sin nvidia-smi; nada que hacer."; exit 0; }
+[ -r "$PROF_FILE" ]            || { echo "Sin platform_profile; nada que hacer."; exit 0; }
+
+prev=""
+while :; do
+    prof="$(cat "$PROF_FILE" 2>/dev/null || true)"
+    if [ -n "$prof" ] && [ "$prof" != "$prev" ]; then
+        w="${PL[$prof]:-}"
+        if [ -n "$w" ]; then
+            if nvidia-smi -pl "$w" &>/dev/null; then
+                logger -t kyu-power-hook "perfil $prof -> dGPU ${w}W"
+            else
+                logger -t kyu-power-hook "perfil $prof -> no se pudo fijar ${w}W (¿dGPU dormida en Integrated?)"
+            fi
+        fi
+        prev="$prof"
+    fi
+    sleep 2
+done

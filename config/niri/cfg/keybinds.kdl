@@ -13,11 +13,13 @@ binds {
     Mod+E                               hotkey-overlay-title="File Manager: Thunar" { spawn "thunar"; }
 
     // ─── Teclas de vendor (Armoury / Omen / etc.) ───
-    // M4 (ASUS Armoury Crate) abre el centro de control de Noctalia (lo mismo
-    // que click derecho en la barra). Para que sea universal en otras marcas,
-    // agrega aquí el keysym de su tecla apuntando a la MISMA acción:
-    //   HP Omen/Victus suele emitir XF86Launch1; descúbrelo con  wev -f wl_keyboard:key
-    XF86Launch4                         hotkey-overlay-title="Centro de control: Noctalia" { spawn-sh "qs -c noctalia-shell ipc call controlCenter toggle"; }
+    // En la TUF A16 las teclas emiten cruzado: la tecla M4 (Armoury, arriba de la
+    // fila F) emite el keysym F4, y la tecla F4 (Aura) emite XF86Launch4.
+    //   M4 (Armoury)  -> F4            -> abre el centro de control de Noctalia
+    //   F4 (Aura)     -> XF86Launch4   -> reservado para ciclar efectos del teclado
+    // Para otras marcas (HP Omen/Victus, etc.) descubre su keysym con
+    //   wev -f wl_keyboard:key   y átalo a la MISMA acción de abajo.
+    F4                                  hotkey-overlay-title="Centro de control: Noctalia" { spawn-sh "qs -c noctalia-shell ipc call controlCenter toggle"; }
 
     // ─── Media Controls ───
     XF86AudioRaiseVolume                allow-when-locked=true { spawn-sh "qs -c noctalia-shell ipc call volume increase"; }
