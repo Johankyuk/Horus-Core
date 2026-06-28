@@ -34,6 +34,8 @@ gen_conf() {
   cat > "$CONF" <<WOBEOF
 # Generado por kyu-kbd-osd — no editar (se regenera al cambiar de tema)
 timeout = 800
+anchor = bottom
+margin = 80
 border_offset = 4
 border_size = 2
 bar_padding = 4
