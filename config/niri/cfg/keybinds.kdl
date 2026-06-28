@@ -12,14 +12,10 @@ binds {
     Mod+Shift+Q                         hotkey-overlay-title="Session Menu: noctalia sessionMenu" { spawn-sh "qs -c noctalia-shell ipc call sessionMenu toggle"; }
     Mod+E                               hotkey-overlay-title="File Manager: Thunar" { spawn "thunar"; }
 
-    // ─── Teclas de vendor (Armoury / Omen / etc.) ───
-    // En la TUF A16: la tecla F4 (Aura) emite el keysym F4, y la tecla M4
-    // (Armoury, arriba de la fila F) emite XF86Launch4.
-    //   F4 (Aura)         -> cicla los efectos del teclado (kyu-kbd-fx)
-    //   Fn+F4             -> XF86Launch4 -> abre el centro de control de Noctalia
-    // (M4/Armoury no llega a Linux; lo consume el firmware.)
-    F4                                  hotkey-overlay-title="Teclado: ciclar efecto" { spawn-sh "kyu-kbd-fx --next"; }
-    XF86Launch4                         hotkey-overlay-title="Centro de control: Noctalia" { spawn-sh "qs -c noctalia-shell ipc call controlCenter toggle"; }
+    // ─── Teclado RGB ───
+    // En la TUF A16: F4 sola emite el keysym F4 (se deja libre para apps);
+    // Fn+F4 (la función "Aura" del teclado) emite XF86Launch4 -> cicla efectos.
+    XF86Launch4                         hotkey-overlay-title="Teclado: ciclar efecto (Fn+F4)" { spawn-sh "kyu-kbd-fx --next"; }
 
     // ─── Media Controls ───
     XF86AudioRaiseVolume                allow-when-locked=true { spawn-sh "qs -c noctalia-shell ipc call volume increase"; }
