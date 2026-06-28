@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# ============================================================
+# Autor: Kyu
+# kyu-fans — ventiladores al máximo, anti-sofoque térmico. Reversible.
+#
+#   kyu-fans         ventiladores a 100% YA (curva all-100% en el perfil activo)
+#   kyu-fans auto    restaura la curva por defecto del perfil activo
+#   kyu-fans --actual  muestra RPM y el perfil sobre el que actúa
+#
+# No hay control PWM directo en el asus_wmi (no existe el archivo pwmN), así que
+# el máximo se logra empujando la curva del perfil ACTIVO a 100% en todo el rango.
+# Se opera sobre el perfil que reporta /sys/firmware/acpi/platform_profile, que ya
+# usa los nombres que asusctl espera (quiet/balanced/performance). Sin sudo:
+# asusctl va por D-Bus.
+# ============================================================
+set -uo pipefail
+P='\033[0;35m'; G='\033[0;32m'; Y='\033[1;33m'; R='\033[0;31m'; N='\033[0m'
+
+command -v asusctl &>/dev/null || { echo -e "${R}[x]${N} Falta asusctl."; exit 1; }
+PROF=$(cat /sys/firmware/acpi/platform_profile 2>/dev/null || echo balanced)
+
+case "${1:-max}" in
+    max)
+        FULL="20c:100%,40c:100%,55c:100%,65c:100%,75c:100%,85c:100%,90c:100%,95c:100%"
+        asusctl fan-curve --mod-profile "$PROF" --fan cpu --data "$FULL" &>/dev/null
+        asusctl fan-curve --mod-profile "$PROF" --fan gpu --data "$FULL" &>/dev/null
+        asusctl fan-curve --mod-profile "$PROF" --enable-fan-curves true &>/dev/null
+        echo -e "${G}[+]${N} Ventiladores a 100% (perfil ${P}$PROF${N})."
+        echo -e "    Restaura con: ${P}kyu-fans auto${N}"
+        ;;
+    auto|off|default)
+        asusctl fan-curve --mod-profile "$PROF" --default &>/dev/null \
+            && echo -e "${G}[+]${N} Curva del perfil ${P}$PROF${N} restaurada a default." \
+            || echo -e "${Y}[i]${N} No se pudo restaurar (revisa asusctl)."
+        ;;
+    --actual|actual)
+        echo "Perfil activo: $PROF"
+        for f in /sys/devices/platform/asus-nb-wmi/hwmon/hwmon*/fan*_input; do
+            [ -r "$f" ] && echo "  $(basename "$(dirname "$f")")/$(basename "$f"): $(cat "$f") RPM"
+        done 2>/dev/null
+        ;;
+    *)
+        echo "uso: kyu-fans [max|auto|--actual]"
+        ;;
+esac
