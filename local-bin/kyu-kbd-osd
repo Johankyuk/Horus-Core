@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# OSD del brillo del teclado vía wob - Autor: Kyu
+set -uo pipefail
+LED=/sys/class/leds/asus::kbd_backlight
+FIFO="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/kyu-kbd-osd.fifo"
+CONF="$HOME/.config/wob/kyu.ini"
+[ -r "$LED/brightness" ] || { echo "No existe $LED/brightness"; exit 1; }
+MAX=$(<"$LED/max_brightness")
+[ -p "$FIFO" ] || mkfifo -m 600 "$FIFO"
+tail -f "$FIFO" | wob -c "$CONF" &
+trap 'kill %1 2>/dev/null' EXIT
+prev=$(<"$LED/brightness")
+while :; do
+  cur=$(<"$LED/brightness")
+  if [ "$cur" != "$prev" ]; then
+    echo $(( cur * 100 / MAX )) > "$FIFO"
+    prev=$cur
+  fi
+  sleep 0.12
+done

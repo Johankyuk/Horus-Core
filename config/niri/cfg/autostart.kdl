@@ -6,3 +6,5 @@
     // Luz nocturna: filtro de luz azul según amanecer/atardecer.
     // Ajusta -l (latitud) y -L (longitud) a tu ciudad; -t noche / -T día en Kelvin.
     spawn-sh-at-startup "wlsunset -l 19.2 -L -96.1 -t 4000 -T 6500"
+spawn-at-startup "kyu-kbd-restore"
+spawn-at-startup "kyu-kbd-osd"
