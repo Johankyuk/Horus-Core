@@ -101,7 +101,7 @@ WALLPAPER = {
 # El tono del color central define el Δrotacion. Δluz y croma afinan la
 # variante. Agregar/ajustar un tema = 1 linea.
 TEMAS = {
-    "Morado":          ("#8b45f7", 0.00, 1.00),  # base, Δ0
+    "Morado":          ("#8b45f7", -0.08, 1.00),  # base, oscurecido para IPS (no lavanda)
     "Azul electrico":  ("#1e90ff", 0.05, 1.06),  # claro, vivo, cyan-ish
     "Azul rey":        ("#3538cd", -0.03, 1.02),  # profundo, hacia indigo
     "Rosa brillante":  ("#ff2e9a", 0.00, 1.06),  # hot pink saturado
