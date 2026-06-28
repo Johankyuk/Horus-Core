@@ -284,9 +284,10 @@ def _elegir():
 
 def main():
     a = sys.argv[1:]
-    if not a or a[0] in ("-h", "--help"):
-        print("uso: kyu-tema <Tema> | --elegir | --lista | --actual"); return
-    if a[0] == "--elegir":
+    if a and a[0] in ("-h", "--help"):
+        print("uso: kyu-tema [Tema] | --elegir | --lista | --actual\n"
+              "  sin argumentos abre el selector interactivo"); return
+    if not a or a[0] == "--elegir":
         _elegir(); return
     if a[0] == "--lista":
         cur = open(STATE).read().strip() if os.path.isfile(STATE) else "(ninguno)"
