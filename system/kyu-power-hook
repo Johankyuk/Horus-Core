@@ -16,9 +16,10 @@
 set -uo pipefail
 
 PROF_FILE=/sys/firmware/acpi/platform_profile
-# Watts por perfil. performance=60 (lo que pediste); quiet capa más bajo el techo;
-# balanced vuelve al default. Ajusta a gusto.
-declare -A PL=( [quiet]=30 [balanced]=55 [performance]=60 )
+# Watts por perfil. performance=60 (lo que pediste); balanced limita a 45; quiet
+# capa el techo bajo. Para eco DE VERDAD frío/silencioso, usa `kyu-power gpu-off`
+# (apaga la dGPU); esto solo capa el techo si la dGPU sigue encendida (Hybrid).
+declare -A PL=( [quiet]=30 [balanced]=45 [performance]=60 )
 
 command -v nvidia-smi >/dev/null || { echo "Sin nvidia-smi; nada que hacer."; exit 0; }
 [ -r "$PROF_FILE" ]            || { echo "Sin platform_profile; nada que hacer."; exit 0; }

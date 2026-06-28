@@ -1,111 +1,106 @@
 #!/usr/bin/env bash
 # ============================================================
 # Autor: Kyu
-# kyu-power — perfiles de energía de Kyu OS.
+# kyu-power — energía + ventiladores + GPU de Kyu OS, unificado.
 #
-#   kyu-power ahorro       dGPU APAGADA (supergfxctl Integrated) + perfil quiet.
-#                          Máxima batería y temperatura mínima. El escritorio pasa
-#                          a la iGPU 780M; la RTX deja de consumir.
-#                          OJO: cambiar el modo de GPU CIERRA SESIÓN (pide confirmar).
-#   kyu-power equilibrado  dGPU on-demand (Hybrid) + balanced + power-limit default.
-#   kyu-power rendimiento  dGPU activa (Hybrid) + performance + power-limit 60W +
-#                          curva de ventiladores agresiva.
-#   kyu-power --actual     muestra el estado actual.
+#   kyu-power setup        define las curvas de los 3 perfiles en asusd y habilita
+#                          el hook de power-limit (correr una vez; el setup_master
+#                          lo hace solo en máquinas con dGPU).
+#   kyu-power eco          perfil quiet  (silencioso). El hook capa la dGPU bajo.
+#   kyu-power equilibrado  perfil balanced (uso ligero de ventilador, dGPU limitada).
+#   kyu-power rendimiento  perfil performance (curva algo agresiva, dGPU a tope seguro).
+#   kyu-power gpu-off      apaga la dGPU (supergfxctl Integrated, usa la iGPU). CIERRA SESIÓN.
+#   kyu-power gpu-on       dGPU on-demand (supergfxctl Hybrid). CIERRA SESIÓN.
+#   kyu-power noheat       ventiladores al 100% (SOLO en rendimiento + conectado a AC).
+#   kyu-power noheat off   restaura la curva agresiva de rendimiento.
+#   kyu-power --actual     estado.
 #
-# El modo de GPU (ahorro = Integrated vs el resto = Hybrid) lo maneja supergfxctl
-# y requiere re-login. El perfil de fans/EC y el power-limit son instantáneos.
-# Solo nvidia-smi -pl necesita sudo; supergfxctl/powerprofilesctl/asusctl van por
-# D-Bus (polkit), sin sudo.
+# REPARTO (al cambiar perfil desde Noctalia, sin tocar este script):
+#   - ventiladores -> asusd aplica la curva del perfil (definida en `setup`).
+#   - power-limit dGPU -> lo aplica kyu-power-hook (servicio) según el perfil.
+#   - apagar la dGPU de verdad (eco real, frío y silencioso) -> gpu-off, manual,
+#     porque cambiar el modo de GPU cierra sesión.
 # ============================================================
 set -uo pipefail
-
 P='\033[0;35m'; G='\033[0;32m'; Y='\033[1;33m'; R='\033[0;31m'; N='\033[0m'
-log()  { echo -e "${P}[power]${N} $1"; }
-ok()   { echo -e "${G}[+]${N} $1"; }
-warn() { echo -e "${Y}[i]${N} $1"; }
-err()  { echo -e "${R}[x]${N} $1"; }
+log(){ echo -e "${P}[power]${N} $1"; }; ok(){ echo -e "${G}[+]${N} $1"; }
+warn(){ echo -e "${Y}[i]${N} $1"; }; err(){ echo -e "${R}[x]${N} $1"; }
 
-PL_RENDIMIENTO=60   # watts de la dGPU en rendimiento (seguro: el VBIOS clampa al techo real)
-CURVA="30c:20%,45c:35%,55c:55%,65c:75%,72c:90%,80c:100%,87c:100%,95c:100%"
+# ── Curvas por perfil (8 puntos temp:pwm%) ──────────────────
+CURVA_QUIET="30c:0%,55c:0%,63c:10%,70c:28%,78c:52%,85c:78%,91c:100%,97c:100%"
+CURVA_BAL="30c:0%,50c:12%,60c:28%,70c:45%,78c:62%,85c:82%,91c:100%,96c:100%"
+CURVA_PERF="35c:25%,48c:42%,58c:60%,67c:78%,74c:92%,81c:100%,88c:100%,95c:100%"
+CURVA_MAX="20c:100%,40c:100%,55c:100%,65c:100%,75c:100%,85c:100%,90c:100%,95c:100%"
 
-# ── supergfxd debe estar activo para tocar el modo de GPU ────
-_asegura_supergfxd() {
-    if systemctl is-active supergfxd &>/dev/null; then return 0; fi
-    warn "supergfxd no está activo; habilitándolo (una vez, pide sudo)..."
-    sudo systemctl enable --now supergfxd && ok "supergfxd habilitado." || {
-        err "No se pudo habilitar supergfxd."; return 1; }
+_curva(){ # $1=perfil asusctl  $2=data
+    command -v asusctl &>/dev/null || { warn "asusctl no disponible."; return 1; }
+    asusctl fan-curve --mod-profile "$1" --fan cpu --data "$2" &>/dev/null
+    asusctl fan-curve --mod-profile "$1" --fan gpu --data "$2" &>/dev/null
+    asusctl fan-curve --mod-profile "$1" --enable-fan-curves true &>/dev/null
 }
 
-_perfil() {  # $1 = power-saver | balanced | performance
-    if powerprofilesctl set "$1" 2>/dev/null; then ok "Perfil EC -> $1"
-    else warn "No se pudo fijar el perfil $1 (¿power-profiles-daemon?)."; fi
+_perfil(){ # $1 = power-saver | balanced | performance
+    powerprofilesctl set "$1" 2>/dev/null && ok "Perfil de energía -> $1" \
+        || warn "No se pudo fijar $1 (¿power-profiles-daemon?)."
 }
 
-_powerlimit() {  # $1 = watts | 'default'
-    command -v nvidia-smi &>/dev/null || { warn "nvidia-smi no disponible; sin power-limit."; return; }
-    local w="$1"
-    if [ "$w" = "default" ]; then
-        w=$(nvidia-smi --query-gpu=power.default_limit --format=csv,noheader,nounits 2>/dev/null | cut -d. -f1)
-    fi
-    [ -n "$w" ] || { warn "No pude leer el power-limit; se omite."; return; }
-    if sudo nvidia-smi -pl "$w" &>/dev/null; then ok "Power-limit dGPU -> ${w}W"
-    else warn "No se pudo fijar el power-limit (¿dGPU dormida en Integrated?)."; fi
-}
-
-_curva_perf() {
-    command -v asusctl &>/dev/null || { warn "asusctl no disponible; sin curva."; return; }
-    asusctl fan-curve --mod-profile performance --fan cpu --data "$CURVA" &>/dev/null
-    asusctl fan-curve --mod-profile performance --fan gpu --data "$CURVA" &>/dev/null
-    asusctl fan-curve --mod-profile performance --enable-fan-curves true &>/dev/null
-    ok "Curva agresiva aplicada al perfil performance."
-}
-
-_curva_default() {  # $1 = perfil
-    command -v asusctl &>/dev/null || return
-    asusctl fan-curve --mod-profile "$1" --default &>/dev/null && ok "Curva de '$1' a default."
-}
-
-_modo_gpu() {  # $1 = Integrated | Hybrid
-    _asegura_supergfxd || return
+_modo_gpu(){ # $1 = Integrated | Hybrid
+    command -v supergfxctl &>/dev/null || { err "Falta supergfxctl."; return 1; }
+    systemctl is-active supergfxd &>/dev/null || {
+        warn "Habilitando supergfxd (una vez, pide sudo)..."
+        sudo systemctl enable --now supergfxd || { err "No se pudo habilitar supergfxd."; return 1; }
+    }
     local actual; actual=$(supergfxctl -g 2>/dev/null)
-    if [ "$actual" = "$1" ]; then ok "Modo GPU ya en $1."; return; fi
+    [ "$actual" = "$1" ] && { ok "Modo GPU ya en $1."; return 0; }
     warn "Cambiar el modo de GPU ($actual -> $1) CIERRA SESIÓN."
     if [ -t 0 ]; then
-        read -rp "  ¿Continuar? [s/N] " r
-        [[ "$r" =~ ^[sS]$ ]] || { log "Cancelado; modo de GPU sin cambios."; return 1; }
+        read -rp "  ¿Continuar? [s/N] " r; [[ "$r" =~ ^[sS]$ ]] || { log "Cancelado."; return 1; }
     fi
-    supergfxctl -m "$1" && log "Modo -> $1. Se cerrará la sesión para aplicar." \
-        || err "No se pudo cambiar el modo de GPU."
+    supergfxctl -m "$1" && log "Modo -> $1. Se cerrará la sesión para aplicar." || err "Falló el cambio de modo."
 }
 
+_en_ac(){ for p in /sys/class/power_supply/*/online; do
+        [ -r "$p" ] && [ "$(cat "$p" 2>/dev/null)" = "1" ] && return 0; done; return 1; }
+
 case "${1:-}" in
-    ahorro|ahor)
-        _modo_gpu Integrated || exit 0
-        _perfil power-saver
-        ok "Ahorro: dGPU apagada + quiet."
+    setup)
+        _curva quiet       "$CURVA_QUIET"
+        _curva balanced    "$CURVA_BAL"
+        _curva performance "$CURVA_PERF"
+        ok "Curvas de los 3 perfiles definidas en asusd."
+        if systemctl list-unit-files kyu-power-hook.service &>/dev/null; then
+            sudo systemctl enable --now kyu-power-hook && ok "Hook de power-limit habilitado."
+        else
+            warn "kyu-power-hook.service no instalado aún (lo pone el setup_master/sección GPU)."
+        fi
         ;;
-    equilibrado|equi|eq)
-        _modo_gpu Hybrid || true
-        _perfil balanced
-        _powerlimit default
-        _curva_default balanced
-        ok "Equilibrado: dGPU on-demand + balanced + power default."
-        ;;
-    rendimiento|rend|re)
-        _modo_gpu Hybrid || true
-        _perfil performance
-        _powerlimit "$PL_RENDIMIENTO"
-        _curva_perf
-        ok "Rendimiento: dGPU a ${PL_RENDIMIENTO}W + performance + curva agresiva."
+    eco|ahorro)          _perfil power-saver ;;
+    equilibrado|equi|eq) _perfil balanced ;;
+    rendimiento|rend|re) _perfil performance ;;
+    gpu-off)             _modo_gpu Integrated ;;
+    gpu-on)              _modo_gpu Hybrid ;;
+    noheat)
+        if [ "${2:-on}" = "off" ]; then
+            _curva performance "$CURVA_PERF" && ok "Curva de rendimiento restaurada."
+            exit 0
+        fi
+        prof=$(cat /sys/firmware/acpi/platform_profile 2>/dev/null)
+        if [ "$prof" != "performance" ]; then
+            err "noheat solo aplica en rendimiento (estás en '${prof:-?}'). Corre: kyu-power rendimiento"; exit 1
+        fi
+        if ! _en_ac; then
+            err "noheat solo con el cargador conectado (vas en batería)."; exit 1
+        fi
+        _curva performance "$CURVA_MAX" && ok "Ventiladores al 100% (rendimiento). Restaura: kyu-power noheat off"
         ;;
     --actual|actual)
         echo "Modo GPU:   $(supergfxctl -g 2>/dev/null || echo '? (supergfxd inactivo)')"
-        echo "Perfil EC:  $(powerprofilesctl get 2>/dev/null || echo '?')"
-        if command -v nvidia-smi &>/dev/null; then
+        echo "Perfil:     $(cat /sys/firmware/acpi/platform_profile 2>/dev/null || echo '?')"
+        command -v nvidia-smi &>/dev/null && \
             echo "Power dGPU: $(nvidia-smi --query-gpu=power.limit --format=csv,noheader 2>/dev/null || echo 'dormida')"
-        fi
+        _en_ac && echo "AC:         conectado" || echo "AC:         batería"
         ;;
     *)
-        echo "uso: kyu-power [ahorro|equilibrado|rendimiento|--actual]"
+        echo "uso: kyu-power [setup|eco|equilibrado|rendimiento|gpu-off|gpu-on|noheat [off]|--actual]"
         ;;
 esac
