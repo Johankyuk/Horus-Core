@@ -573,7 +573,7 @@
         "batteryWarningThreshold": 20,
         "cpuCriticalThreshold": 80,
         "cpuWarningThreshold": 70,
-        "criticalColor": "#fb5c7e",
+        "criticalColor": "#f5567a",
         "diskAvailCriticalThreshold": 20,
         "diskAvailWarningThreshold": 30,
         "diskCriticalThreshold": 80,
@@ -589,7 +589,7 @@
         "tempCriticalThreshold": 80,
         "tempWarningThreshold": 70,
         "useCustomColors": true,
-        "warningColor": "#c44fe6"
+        "warningColor": "#b340e0"
     },
     "templates": {
         "activeTemplates": [
@@ -622,10 +622,10 @@
                 "darkMode": true,
                 "generationMethod": "vibrant",
                 "paletteColors": [
-                    "#8b45f7",
-                    "#c44fe6",
-                    "#e85fb0",
-                    "#fb5c7e"
+                    "#7a2be8",
+                    "#b340e0",
+                    "#df54a6",
+                    "#f5567a"
                 ],
                 "path": "/home/kyu/kyu-os/Wallpapers/802579.jpg",
                 "useWallpaperColors": false
@@ -636,10 +636,10 @@
                 "darkMode": true,
                 "generationMethod": "vibrant",
                 "paletteColors": [
-                    "#8b45f7",
-                    "#c44fe6",
-                    "#e85fb0",
-                    "#fb5c7e"
+                    "#7a2be8",
+                    "#b340e0",
+                    "#df54a6",
+                    "#f5567a"
                 ],
                 "path": "/home/kyu/kyu-os/Wallpapers/wlpprkyu.jpg",
                 "useWallpaperColors": false
@@ -659,7 +659,7 @@
         "setWallpaperOnAllMonitors": true,
         "showHiddenFiles": true,
         "skipStartupTransition": false,
-        "solidColor": "#18092b",
+        "solidColor": "#140622",
         "sortOrder": "name",
         "transitionDuration": 500,
         "transitionEdgeSmoothness": 1,

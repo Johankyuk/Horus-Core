@@ -7,6 +7,8 @@ Type=simple
 ExecStart=/usr/local/bin/kyu-power-hook
 Restart=on-failure
 RestartSec=5
+TimeoutStopSec=3s
+KillMode=mixed
 
 [Install]
 WantedBy=multi-user.target

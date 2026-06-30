@@ -8,3 +8,4 @@
     spawn-sh-at-startup "wlsunset -l 19.2 -L -96.1 -t 4000 -T 6500"
 spawn-at-startup "kyu-kbd-fx"
 spawn-at-startup "kyu-kbd-osd"
+spawn-at-startup "kyu-lock-listener"
