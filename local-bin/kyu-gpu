@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# kyu-gpu — lanzador consciente del PERFIL. Sirve para cualquier app (juegos,
+# render, diseño) y como prefijo global del launcher de Noctalia.
+#   silencio (quiet)        -> iGPU exclusivo (sin offload).
+#   equilibrado/rendimiento -> ofrece la dGPU (offload). La dedicada solo despierta
+#                              si la app la usa de verdad; el wataje lo pone el hook.
+# Maneja binarios normales (prime-run) y Flatpaks ('flatpak run' -> inyecta --env).
+# Idempotente: evita doble prefijo (launcher + .desktop).
+[ "$(basename "${1:-}")" = kyu-gpu ] && shift
+[ $# -eq 0 ] && exit 0
+prof=$(cat /sys/firmware/acpi/platform_profile 2>/dev/null)
+if [ "$prof" = quiet ]; then exec "$@"; fi           # silencio: SOLO iGPU
+if [ "$1" = flatpak ]; then                          # Flatpak: inyectar env tras 'run'
+    out=(); inj=0
+    for a in "$@"; do out+=("$a")
+        if [ "$a" = run ] && [ $inj -eq 0 ]; then
+            out+=(--env=__NV_PRIME_RENDER_OFFLOAD=1 --env=__GLX_VENDOR_LIBRARY_NAME=nvidia --env=__VK_LAYER_NV_optimus=NVIDIA_only); inj=1
+        fi
+    done
+    exec "${out[@]}"
+fi
+command -v prime-run >/dev/null && exec prime-run "$@"
+exec "$@"

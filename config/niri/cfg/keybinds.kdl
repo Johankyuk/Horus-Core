@@ -7,9 +7,10 @@ binds {
     // ─── Applications ───
     Mod+Return                          hotkey-overlay-title="Open Terminal: Foot" { spawn "foot"; }
     Mod+CTRL+Return                     hotkey-overlay-title="Open App Launcher: noctalia launcher" { spawn-sh "qs -c noctalia-shell ipc call launcher toggle"; }
+    F13                                 hotkey-overlay-title="Menú Noctalia: launcher (tecla Super sola, vía keyd)" { spawn-sh "qs -c noctalia-shell ipc call controlCenter toggle"; }
+    Mod+A                               hotkey-overlay-title="Control Center Noctalia" { spawn-sh "qs -c noctalia-shell ipc call controlCenter toggle"; }
     Mod+B                               hotkey-overlay-title="Abrir navegador: Zen" { spawn "zen-browser"; }
     Mod+Shift+L                         hotkey-overlay-title="Lock Screen: noctalia lock" { spawn-sh "qs -c noctalia-shell ipc call lockScreen lock"; }
-    XF86PowerOff                        hotkey-overlay-title="Lock Screen: tecla power" { spawn-sh "qs -c noctalia-shell ipc call lockScreen lock"; }
     Mod+Shift+Q                         hotkey-overlay-title="Session Menu: noctalia sessionMenu" { spawn-sh "qs -c noctalia-shell ipc call sessionMenu toggle"; }
     Mod+E                               hotkey-overlay-title="File Manager: Thunar" { spawn "thunar"; }
 
@@ -17,6 +18,7 @@ binds {
     // En la TUF A16: F4 sola emite el keysym F4 (se deja libre para apps);
     // Fn+F4 (la función "Aura" del teclado) emite XF86Launch4 -> cicla efectos.
     XF86Launch4                         hotkey-overlay-title="Teclado: ciclar efecto (Fn+F4)" { spawn-sh "kyu-kbd-fx --next"; }
+    Mod+Shift+A                         hotkey-overlay-title="Teclado: ciclar efecto" { spawn-sh "kyu-kbd-fx --next"; }
 
     // ─── Media Controls ───
     XF86AudioRaiseVolume                allow-when-locked=true { spawn-sh "qs -c noctalia-shell ipc call volume increase"; }
