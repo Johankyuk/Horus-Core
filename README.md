@@ -1,6 +1,6 @@
 # Horus Project
 
-> A Noctalia rice that got out of hand and ended up becoming an operating system.
+> A Noctalia rice that got out of hand and ended up becoming a full post-install for CachyOS.
 
 *Español: [README.es.md](README.es.md)*
 
@@ -21,7 +21,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/Johankyuk/Horus-Project/main
 - **ES/EN language** switch in one command.
 - **Power and hybrid-GPU** management aimed at laptops with an NVIDIA dGPU.
 - **Keyboard RGB** with software effects.
-- Its own branding: black boot, purple fastfetch, `os-release` as "Horus Project".
+- Its own branding: black boot titled "Horus Project (your base)" and fastfetch with the Horus eye in the active theme's color. No fake `os-release`: it's not a distro and doesn't pretend to be one.
 
 ## Requirements
 
@@ -130,7 +130,7 @@ horus/
 ├── setup_master.sh       # master installer (idempotent sections)
 ├── config/               # dotfiles → ~/.config (niri, noctalia, foot)
 ├── local-bin/            # horus-* shortcuts → ~/.local/bin
-├── branding/         # identity package (os-release, fastfetch, hook)
+├── branding/         # fastfetch logo and config (rotated by the theme)
 ├── sugar-dark-horus/       # SDDM theme
 ├── proyectar/            # monitor projection utility
 ├── system/               # systemd services (power hook)

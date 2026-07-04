@@ -263,20 +263,54 @@ def _asegura_dark(ts):
     open(dst, "w", encoding="utf-8").write(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
     did("Noctalia: modo oscuro por defecto (darkMode=true).")
 
-def reload_hot():
+def wallpaper_del_tema(tema):
+    # Resuelve el PNG pre-generado del tema en el repo (no escribe nada).
+    slug = tema.lower().replace(" ", "_")
+    for cand in (slug, {"morado": "morada"}.get(slug, slug)):
+        p = os.path.join(WALL_DIR, f"horus_{cand}.png")
+        if os.path.isfile(p): return p
+    warn(f"No hay Wallpapers/horus_{slug}.png en el repo; wallpaper sin cambiar.")
+    return None
+
+def stop_noctalia():
+    # Se mata ANTES de escribir settings.json: Noctalia guarda su config en
+    # memoria al salir y pisaria lo recien escrito (wallpaper/scheme nuevos).
+    if shutil.which("qs"):
+        subprocess.run(["pkill", "-f", "noctalia-shell"], check=False)
+        time.sleep(0.6)
+
+def _pantallas():
+    # Nombres de salida segun niri (eDP-1, HDMI-A-1, ...); [""] como fallback.
+    try:
+        r = subprocess.run(["niri", "msg", "--json", "outputs"], capture_output=True, text=True)
+        outs = list(json.loads(r.stdout).keys())
+        return outs or [""]
+    except Exception:
+        return [""]
+
+def reload_hot(png=None):
     # Recargas en caliente sin re-loguear.
     if shutil.which("niri"):
         subprocess.run(["niri", "msg", "action", "load-config-file"], check=False)
     subprocess.run(["pkill", "-USR1", "foot"], check=False)  # foot relee colores con SIGUSR1
-    # Noctalia cachea la paleta (colors.json) y no relee el scheme solo. En vez del
-    # 'darkMode toggle' x2 (que parpadea a CLARO y a veces se queda pegado en claro),
-    # se REINICIA Noctalia: regenera la paleta del tema nuevo y arranca en el modo
-    # guardado (darkMode=true por defecto) => sin parpadeo a claro.
     if shutil.which("qs"):
-        subprocess.run(["pkill", "-f", "noctalia-shell"], check=False)
-        time.sleep(0.6)
         subprocess.Popen(["setsid", "qs", "-c", "noctalia-shell"],
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        # Noctalia NO lee el path del settings.json al arrancar; el wallpaper se
+        # fija por IPC (y ella lo persiste sola). Reintentos: el IPC tarda en subir.
+        if png:
+            for _ in range(20):
+                time.sleep(0.5)
+                ok = True
+                for scr in _pantallas():
+                    r = subprocess.run(["qs", "-c", "noctalia-shell", "ipc", "call",
+                                        "wallpaper", "set", png, scr],
+                                       capture_output=True)
+                    ok = ok and r.returncode == 0
+                if ok:
+                    did(f"Wallpaper -> {os.path.basename(png)} (IPC)"); break
+            else:
+                warn("IPC de Noctalia no respondio; wallpaper por aplicar a mano.")
 
 
 # ── 7) Teclado RGB (ITE5570 LampArray): color = primary del tema ──
@@ -311,12 +345,18 @@ def aplicar(tema):
     gen_colorscheme(tema, ts)  # ← reescribe el scheme "Horus Project" (dark + light)
     gen_foot(tema, ts)         # ← foot.ini del tema (ANSI semánticos fijos)
     patch_fastfetch(tema, ts)  # ← logo/keys/title de fastfetch siguen el tema
-    _asegura_dark(ts)          # ← modo oscuro por defecto
     # patch_cursor(tema, ts)   # (pendiente) recolorea el tema de cursor
     # patch_gtk(tema, ts)      # (pendiente) carpetas de Thunar / acento GTK
     save_state(tema)
-    if _CAMBIOS[0]:
-        reload_hot()
+    # ── Wallpaper del tema + reinicio de Noctalia (orden anti-carrera) ──
+    png = wallpaper_del_tema(tema)
+    sj = os.path.join(CFG, "noctalia", "settings.json")
+    wp_cambia = bool(png) and os.path.isfile(sj) and png not in open(sj, encoding="utf-8").read()
+    if _CAMBIOS[0] or wp_cambia:
+        stop_noctalia()            # 1. matar (o guardaria settings viejos al salir)
+        set_wallpaper_activo(png, ts)  # 2. escribir wallpaper del tema
+        _asegura_dark(ts)              # 3. asegurar modo oscuro
+        reload_hot(png)                # 4. arrancar Noctalia + wallpaper via IPC
         did(f"Tema '{tema}' aplicado (Niri + Noctalia + foot + teclado). Respaldo: {os.path.join(BK_ROOT, ts)}")
     else:
         skip(f"Todo ya estaba en '{tema}'. Sin cambios.")
