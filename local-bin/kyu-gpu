@@ -1,16 +1,22 @@
 #!/usr/bin/env bash
-# kyu-gpu — lanzador consciente del PERFIL. Sirve para cualquier app (juegos,
-# render, diseño) y como prefijo global del launcher de Noctalia.
-#   silencio (quiet)        -> iGPU exclusivo (sin offload).
-#   equilibrado/rendimiento -> ofrece la dGPU (offload). La dedicada solo despierta
-#                              si la app la usa de verdad; el wataje lo pone el hook.
-# Maneja binarios normales (prime-run) y Flatpaks ('flatpak run' -> inyecta --env).
-# Idempotente: evita doble prefijo (launcher + .desktop).
+# kyu-gpu — lanzador consciente del PERFIL y del CARGADOR. Prefijo global del launcher
+# de Noctalia; sirve para cualquier app (juegos, render, diseño).
+#   silencio (quiet)             -> iGPU exclusivo.
+#   EN BATERÍA (cualquier perfil) -> iGPU exclusivo (no drena la dGPU).
+#   equilibrado/rendimiento + AC  -> ofrece la dGPU (offload).
+# Maneja binarios (prime-run) y Flatpaks ('flatpak run' -> inyecta --env). Idempotente.
 [ "$(basename "${1:-}")" = kyu-gpu ] && shift
 [ $# -eq 0 ] && exit 0
+
+_en_ac(){ for p in /sys/class/power_supply/*/online; do
+    [ -r "$p" ] && [ "$(cat "$p" 2>/dev/null)" = "1" ] && return 0; done; return 1; }
+
 prof=$(cat /sys/firmware/acpi/platform_profile 2>/dev/null)
-if [ "$prof" = quiet ]; then exec "$@"; fi           # silencio: SOLO iGPU
-if [ "$1" = flatpak ]; then                          # Flatpak: inyectar env tras 'run'
+# iGPU si: silencio, o vas en batería (candado de energía)
+if [ "$prof" = quiet ] || ! _en_ac; then exec "$@"; fi
+
+# equilibrado/rendimiento + cargador: ofrecer la dGPU
+if [ "$1" = flatpak ]; then
     out=(); inj=0
     for a in "$@"; do out+=("$a")
         if [ "$a" = run ] && [ $inj -eq 0 ]; then
