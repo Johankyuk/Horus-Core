@@ -272,6 +272,18 @@ def wallpaper_del_tema(tema):
     warn(f"No hay Wallpapers/horus_{slug}.png en el repo; wallpaper sin cambiar.")
     return None
 
+def patch_cursor(tema):
+    slug = tema.lower().replace(" ", "_")
+    name = "Bibata-Modern-Purple" if slug == "morado" else f"Bibata-Horus-{slug}"
+    if os.path.isdir(os.path.join(HOME, ".icons", name, "cursors")):
+        subprocess.run(["horus-cursor", "--apply", name], capture_output=True)
+        did(f"Cursor -> {name}")
+    else:
+        color = kt.rotar_hex("#7a2be8", tema)
+        subprocess.Popen(["setsid", "horus-cursor", "--build", name, color, "--apply"],
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        warn(f"Cursor '{name}' generandose en 2o plano (~10 min); se aplicara y notificara solo.")
+
 def stop_noctalia():
     # Se mata ANTES de escribir settings.json: Noctalia guarda su config en
     # memoria al salir y pisaria lo recien escrito (wallpaper/scheme nuevos).
@@ -297,20 +309,24 @@ def reload_hot(png=None):
         subprocess.Popen(["setsid", "qs", "-c", "noctalia-shell"],
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         # Noctalia NO lee el path del settings.json al arrancar; el wallpaper se
-        # fija por IPC (y ella lo persiste sola). Reintentos: el IPC tarda en subir.
+        # fija por IPC. El SET devuelve 0 aunque el modulo aun no este listo, asi
+        # que NO se le cree: se confirma con GET y se reintenta hasta verlo.
         if png:
-            for _ in range(20):
+            aplicado = False
+            for _ in range(30):
                 time.sleep(0.5)
-                ok = True
-                for scr in _pantallas():
-                    r = subprocess.run(["qs", "-c", "noctalia-shell", "ipc", "call",
-                                        "wallpaper", "set", png, scr],
-                                       capture_output=True)
-                    ok = ok and r.returncode == 0
-                if ok:
-                    did(f"Wallpaper -> {os.path.basename(png)} (IPC)"); break
-            else:
-                warn("IPC de Noctalia no respondio; wallpaper por aplicar a mano.")
+                scrs = _pantallas()
+                for scr in scrs:
+                    subprocess.run(["qs", "-c", "noctalia-shell", "ipc", "call",
+                                    "wallpaper", "set", png, scr], capture_output=True)
+                r = subprocess.run(["qs", "-c", "noctalia-shell", "ipc", "call",
+                                    "wallpaper", "get", scrs[0]],
+                                   capture_output=True, text=True)
+                if png in (r.stdout or ""):
+                    did(f"Wallpaper -> {os.path.basename(png)} (IPC confirmado)")
+                    aplicado = True; break
+            if not aplicado:
+                warn("Noctalia no confirmo el wallpaper en 15s; aplicalo desde el selector.")
 
 
 # ── 7) Teclado RGB (ITE5570 LampArray): color = primary del tema ──
@@ -345,7 +361,7 @@ def aplicar(tema):
     gen_colorscheme(tema, ts)  # ← reescribe el scheme "Horus Project" (dark + light)
     gen_foot(tema, ts)         # ← foot.ini del tema (ANSI semánticos fijos)
     patch_fastfetch(tema, ts)  # ← logo/keys/title de fastfetch siguen el tema
-    # patch_cursor(tema, ts)   # (pendiente) recolorea el tema de cursor
+    patch_cursor(tema)         # cursor Bibata del tema (build en 2o plano si falta)
     # patch_gtk(tema, ts)      # (pendiente) carpetas de Thunar / acento GTK
     save_state(tema)
     # ── Wallpaper del tema + reinicio de Noctalia (orden anti-carrera) ──
