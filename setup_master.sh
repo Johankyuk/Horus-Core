@@ -417,7 +417,7 @@ declare -A SEC_RED=(  [sistema]=1 [snapshot]=0 [update]=1 [repos]=1 [aur]=1 [opc
 declare -A SEC_PKG=(
     [snapshot]=nucleo [update]=nucleo [repos]=nucleo [aur]=nucleo
     [configs]=nucleo [generables]=nucleo [launcher]=nucleo [sddm]=nucleo
-    [branding]=nucleo [teclado]=nucleo [recursos]=nucleo [proyeccion]=nucleo [sesion]=nucleo
+    [branding]=nucleo [teclado]=nucleo [recursos]=nucleo [proyeccion]=nucleo [sesion]=nucleo [sistema]=nucleo
     [gtk]=cosmeticos [cursor]=cosmeticos
     [flatpak]=apps [opcionales]=apps [zen]=apps [steam]=apps
     [rendimiento]=rendimiento [gaming]=gaming )
@@ -636,7 +636,7 @@ if [ "${#SOLO_SECS[@]}" -eq 0 ]; then
     esac
     SELECCION=()
     for _s in "${SECCIONES[@]}"; do
-        [ -n "${PKG_ON[${SEC_PKG[$_s]}]:-}" ] && SELECCION+=("$_s")
+        [ -n "${PKG_ON[${SEC_PKG[$_s]:-}]:-}" ] && SELECCION+=("$_s")
     done
 
     # Modo preview: enseña el plan resultante y sale sin tocar nada.
