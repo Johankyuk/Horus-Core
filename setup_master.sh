@@ -1,4 +1,5 @@
 #!/bin/bash
+export HORUS_NO_CLOSE=1  # horus-theme no debe cerrar la terminal del setup
 # Descripcion: Setup maestro - CachyOS -> Horus Project (Niri + Noctalia)
 #               Instala paquetes, despliega configs y aplica branding.
 # Uso:   La interfaz son los atajos horus-* (se despliegan en la 1ª corrida y quedan

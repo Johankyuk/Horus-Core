@@ -399,6 +399,10 @@ def patch_kbd(tema, ts):
 def _cerrar_terminal():
     # Cierra la foot/footclient ancestro de este proceso (si existe). Lo lanzado
     # con setsid (Noctalia, build de cursor) queda fuera del arbol y sobrevive.
+    # HORUS_NO_CLOSE la exporta horus-start: si el tema se aplica DENTRO del
+    # setup, cerrar la terminal mataria la instalacion entera a media corrida.
+    if os.environ.get("HORUS_NO_CLOSE"):
+        return
     try:
         pid = os.getppid()
         for _ in range(10):
