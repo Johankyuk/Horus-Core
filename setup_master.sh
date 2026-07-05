@@ -2173,7 +2173,7 @@ done
 if [ "${HORUS_PREVIEW:-0}" -eq 0 ] && [ -n "${HORUS_THEME:-}" ] && [ "${HORUS_THEME}" != "__custom__" ]; then
     if [ -x "$HOME/.local/bin/horus-theme" ]; then
         section "Tema: $HORUS_THEME"
-        if "$HOME/.local/bin/horus-theme" "$HORUS_THEME"; then
+        if HORUS_FIRST=1 "$HOME/.local/bin/horus-theme" "$HORUS_THEME"; then
             did "Tema '$HORUS_THEME' aplicado."
         else
             nota "No se pudo aplicar el tema automáticamente; corre: horus-theme \"$HORUS_THEME\""
