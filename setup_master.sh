@@ -609,6 +609,14 @@ if [ "$DO_LIMPIAR" -eq 1 ]; then
     exit 0
 fi
 
+# Detección de dGPU NVIDIA (idempotente)
+if lspci 2>/dev/null | grep -Ei 'VGA|3D|Display' | grep -iq nvidia; then
+    HORUS_DGPU=1
+else
+    HORUS_DGPU=0
+fi
+export HORUS_DGPU
+
 # PLAN + CONFIRMACION (flujo completo pregunta; --solo va directo)
 if [ "${#SOLO_SECS[@]}" -eq 0 ]; then
     # Instalación completa fija (sin wizard): morado, español, todas las secciones.
@@ -616,7 +624,7 @@ if [ "${#SOLO_SECS[@]}" -eq 0 ]; then
     HORUS_THEME="Morado"
     HORUS_LANG_NAME="Español"
     declare -A PKG_ON=([nucleo]=1 [cosmeticos]=1 [apps]=1 [gaming]=1)
-    [ "$HORUS_DGPU" = "1" ] && PKG_ON[rendimiento]=1
+    [ "${HORUS_DGPU:-0}" = "1" ] && PKG_ON[rendimiento]=1
     SELECCION=()
     for _s in "${SECCIONES[@]}"; do
         [ -n "${PKG_ON[${SEC_PKG[$_s]:-}]:-}" ] && SELECCION+=("$_s")
