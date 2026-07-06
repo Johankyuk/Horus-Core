@@ -1018,8 +1018,8 @@ if [ -f "$CONFIG_DIR/noctalia/settings.json" ]; then
     sed -i -e 's/"predefinedScheme": *"[^"]*"/"predefinedScheme": "Horus Project"/' \
            -e 's/"useWallpaperColors": *true/"useWallpaperColors": false/' \
            -e 's/"use12hourFormat": *false/"use12hourFormat": true/' \
-           -e "s#/home/kyu/Horus-Project/Wallpapers#$SCRIPT_DIR/Wallpapers#g" \
-           -e "s#/home/kyu/Horus-Project/PFP#$SCRIPT_DIR/PFP#g" \
+           -e "s#/home/kyu/Horus-Core/Wallpapers#$SCRIPT_DIR/Wallpapers#g" \
+           -e "s#/home/kyu/Horus-Core/PFP#$SCRIPT_DIR/PFP#g" \
            "$_ns_tmp"
     # Backup de la versión previa solo si de verdad vamos a pisarla con algo distinto.
     if [ -f "$NOCTALIA_SETTINGS" ] && ! diff -q "$_ns_tmp" "$NOCTALIA_SETTINGS" &>/dev/null; then
@@ -2023,7 +2023,7 @@ sec_flatpak() {
 
 # SECCIÓN «sistema» — servicios y reglas de system/ (antes huérfanos del setup)
 sec_sistema() {
-    local sysd="${HORUS_DIR:-$HOME/Horus-Project}/system"
+    local sysd="${HORUS_DIR:-$HOME/Horus-Core}/system"
     # 1) power-hook (root): dGPU y ventiladores atados al perfil de energía
     if [ -f "$sysd/horus-power-hook" ]; then
         sudo install -m755 "$sysd/horus-power-hook" /usr/local/bin/horus-power-hook
@@ -2064,7 +2064,7 @@ sec_sistema() {
 #   user.js + CSS -> todos los perfiles de ~/.zen (nombres con espacios)
 #   Dark Reader (config/zen/darkreader-horus.json) se IMPORTA a mano.
 sec_zen() {
-    local src="${HORUS_DIR:-$HOME/Horus-Project}/config/zen"
+    local src="${HORUS_DIR:-$HOME/Horus-Core}/config/zen"
     local zen_dir="$HOME/.zen" ini="$HOME/.zen/profiles.ini"
     local zen_install="" c
     for c in /opt/zen-browser-bin "$HOME/.tarball-installations/zen" /opt/zen "$HOME/.zen-browser"; do
