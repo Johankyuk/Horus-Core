@@ -1,146 +1,84 @@
 # Horus Project
 
-> Un rice de Noctalia que se le fue de las manos y terminó siendo un post-install completo para CachyOS.
+> Un rice de Noctalia que se me fue de las manos y terminó siendo mi post-install personal para CachyOS.
 
-*English: [README.md](README.md)*
+Esto ya no pretende ser un proyecto para todo el mundo. Es **mi** setup: lo que uso a diario, con la estética que me gusta y el rendimiento que necesito para lo mío. Lo dejo público por si a alguien le sirve de referencia, pero está pensado para mi equipo y mi flujo, no para mantenerse como algo universal.
 
-Horus Project nació de la idea de crear una distro que pudiera prestarse para cualquier ocasión, buena para todo lo necesario sin consumir recursos de forma despilfarrada; tras usar Windows por años y hacer un distrohopping me percaté de algo que, al menos en mi dispositivo con modestos 8 GB de RAM, notaba entre distros: el kernel de CachyOS era una maravilla. Al correr juegos en Arch, Artix, Zorin OS, etc., siempre estaba la limitante de que mi hardware no pudiera dar más de sí, pero Cachy fue la excepción. Tomando de base **Niri** por el recuerdo similar a su shell **Noctalia**, con un amplio parecido a GNOME (el primer DE con el que hice contacto), y con base Cachy, a pesar de no estar hecha desde cero, se volvió un script post-instalación de CachyOS que, al instalarse con el compositor **Niri** (shell **Noctalia**) —y por ahora, por temas de tiempo, únicamente soportando systemd-boot como opción desde el instalador—, es instalable a través de un repositorio git con un solo comando. Mi rice trata de recopilar todas las funciones que considero útiles, traídas directamente a Niri con simpleza y permitiendo un workflow enfocado en la productividad sin distracciones pero con varios enfoques distintos: su estética, el rendimiento para tareas exigentes y un soporte que pueda brindar a la mayoría de dispositivos una experiencia fluida y disfrutable.
+Nació de años de distrohopping. Tras probar Arch, Artix, Zorin y compañía en un equipo modesto, el kernel de CachyOS fue el único que le sacó juego de verdad al hardware. Sobre esa base monté **Niri** (tiling scrollable) con **Noctalia** como shell —me recordaba a GNOME, mi primer contacto con Linux— y fui recopilando todo lo que considero útil en un solo script de post-instalación, instalable con un comando.
 
-**¿Empezamos?**
+## Instalación
 
-```
+Un solo comando. Instala git si falta, clona el repo en `~/Horus-Project` y lanza el instalador:
 bash <(curl -fsSL https://raw.githubusercontent.com/Johankyuk/Horus-Project/main/bootstrap.sh)
-```
-
-## Contenido
-
-- **Niri** (tiling scrollable) con **Noctalia** como shell: barra, dock, centro de control y lockscreen.
-- Terminal **foot**, gestor de archivos **Thunar**, navegador **Zen**.
-- Greeter **SDDM** con tema propio (sugar-dark-horus), con el fondo coherente con tu wallpaper.
-- Motor de temas con **9 paletas** que recolorean todo el sistema de golpe — y puedes meter las tuyas.
-- Cambio de **idioma ES/EN** en un comando.
-- Gestión de **energía y GPU híbrida** pensada para portátiles con dGPU NVIDIA.
-- **RGB del teclado** con efectos por software.
-- Branding propio: boot negro con título "Horus Project (tu base)" y fastfetch con el ojo de Horus al color del tema activo. Sin `os-release` falso: no es una distro y no se disfraza de una.
+**Sin preguntas.** Instalación completa, en español, con tema morado. Corre todas las secciones y deja el equipo listo. Si querés control fino, `horus-start --solo=<seccion>` corre secciones sueltas.
 
 ## Requisitos
 
-- **CachyOS**.
-- Arranque **UEFI con systemd-boot**. *(para mayor facilidad de edición)*
-- Conexión a internet.
+- **CachyOS**
+- Arranque **UEFI con systemd-boot**
+- Conexión a internet
 
-## Instalación rápida
+## Qué instala
 
-Un solo comando. Instala git si falta, clona el repo en `~/Horus-Project` y lanza el instalador:
+- **Niri** (tiling scrollable) con **Noctalia** como shell: barra, dock, centro de control y lockscreen.
+- Terminal **foot**, gestor de archivos **Thunar**, navegador **Zen**.
+- Greeter **SDDM** con tema propio (sugar-dark-horus), coherente con el wallpaper.
+- Apps de diario: VLC, imv, OBS, OnlyOffice, VSCodium, Steam (con su fix de Wayland), Sober (Roblox).
+- Gestión de **energía y GPU híbrida** para portátiles con dGPU NVIDIA.
+- **RGB del teclado** con efectos por software (ASUS TUF / ITE5570).
+- Branding propio: boot negro con título "Horus Project (tu base)" y fastfetch con el ojo de Horus en morado. Sin `os-release` falso: no es una distro y no se disfraza de una.
 
-```
-bash <(curl -fsSL https://raw.githubusercontent.com/Johankyuk/Horus-Project/main/bootstrap.sh)
-```
+## Tema
 
-Eso es todo. A partir de ahí el instalador te lleva de la mano.
-
-## Modos de instalación
-
-Al arrancar, el instalador te pregunta cómo quieres instalar:
-
-**Completa** — Todo lo que ves en este README, sin preguntar nada más. Para quien quiere el setup tal cual.
-
-**Personalizada** *(recomendada)* — Eliges paquete por paquete qué entra. Cada sección tiene su selector y su explicación. Si no leíste las opciones de abajo, este es tu modo: te las va mostrando y decides sobre la marcha. *(es mi preferido porque sé que en vez de leer me saltaría a ver todo en práctica)*
-
-**Mínima** — Solo el núcleo: lo imprescindible para tener Niri + Noctalia funcionando. Para construir encima a tu gusto.
-
-La idea principal de Horus Project es que te sientas libre: en modo personalizado nada se instala a tus espaldas, y todo parámetro que quieras tocar tiene su selector.
-
-## Qué hay en cada paquete
-
-**Núcleo** *(siempre se instala)* — Niri, Noctalia, foot, Thunar, fuentes, configs, atajos de teclado, SDDM, proyección a monitores, límite de batería, RGB del teclado y fixes de Steam *(me pasó con un i7 11th gen)*.
-
-**Cosméticos** — El coloreado por tema del cursor, las carpetas de Thunar, el acento GTK y el focus-ring de las ventanas, más el selector de tema. Lo visual, lo que hará único a tu escritorio y día a día. *(recomendado instalar siempre este bloque para una experiencia más acogedora)*
-
-**Apps** — Selección por categoría: oficina (OnlyOffice por defecto, LibreOffice como alternativa), multimedia (VLC, imv, OBS) y navegador (Zen). Steam y el meta de gaming entran aquí. Al abrir cada categoría se agregan las siguientes alternativas, pero no van directamente: lo opcional de verdad — navegadores extra, Discord, multimedia adicional. Nada de esto es necesario; está por si lo quieres.
-
-**Gaming** — Juegos web nostálgicos (PvZ Gardenless, Angry Birds Epic, AllStars) servidos por un script con su propio lanzador. *(pendientes aún)*
-
-**Rendimiento gráfico** *(solo si detecta dGPU)* — supergfxctl, nvtop y la configuración de horus-power (curvas de ventilador + hook de energía). Si tu equipo no tiene GPU dedicada, esta sección no aparece.
-
-## Temas
-
-Horus Project trae un gestor de color (OKLCH) con **9 temas** que recolorean Noctalia, foot, Niri, el wallpaper, el cursor y el RGB del teclado a la vez:
-
-Morado, Azul eléctrico, Azul rey, Rosa brillante, Rosa pálido, Amarillo, Naranja, Rojo y Gris.
-
-```
-horus-theme            # abre el selector con muestras de color
-horus-theme Rojo       # aplica un tema directo (rojo en este caso)
-horus-theme --actual   # muestra el tema activo
-```
-
-Adicionalmente existe la opción de agregar un **tema propio** (un color central y un par de ajustes) o instalar **sin tema** y quedarte con el morado base.
-
-## Idioma
-
-Inglés por defecto, español con un comando. El idioma también ajusta detalles como el primer día de la semana en el reloj (lunes → monday).
-
-```
-horus-language         # selector ES / EN
-```
-
-al contrario de un tal toby fox, yo sí traduzco a un idioma más de 1300 líneas de código… Supera eso.
+Todo va en **morado** (`#8b45f7`). El sistema tiene un motor de color OKLCH que recolorea Noctalia, foot, Niri, wallpaper, cursor y RGB del teclado de golpe. En la instalación se aplica morado y punto. El motor conserva otras paletas internamente por si algún día las quiero, pero no hay selector ni se ofrecen: esto es un setup de un solo tema a propósito.
 
 ## Energía y GPU
 
 Pensado para portátiles con GPU híbrida (iGPU + dGPU NVIDIA). `horus-power` unifica perfiles, curvas de ventilador y modos de GPU:
-
-```
 horus-power eco          # silencioso, dGPU muy capada
 horus-power equilibrado  # uso diario
 horus-power rendimiento  # a tope (solo con cargador)
 horus-power gpu-off      # apaga la dGPU, escritorio a iGPU (cierra sesión)
 horus-power gpu-on       # la vuelve a encender
-```
+Un hook vigila el perfil de energía y ajusta solo el límite de potencia de la dGPU. El límite de carga de batería (80%) también lo mantiene un servicio en cada arranque.
 
-Un hook vigila el perfil de energía y ajusta solo el límite de potencia de la dGPU. **gpu-off** es la opción para máxima autonomía: deja el equipo corriendo solo en la iGPU; el modo persiste tras reiniciar y se revierte con `gpu-on`.
+> **Nota dual boot:** si arrancás desde Windows antes que Linux, Windows puede pisar el tope de carga en el EC. El hook lo recorrige en segundos al volver a Linux, pero hay una ventana breve donde el límite puede verse en otro valor. Es esperado, no un fallo.
 
 ## Teclado RGB
 
-El RGB del teclado sigue el color del tema. Los efectos van por software (el firmware de este equipo no los soporta de forma nativa). *(para ASUS TUF únicamente; eso se irá configurando más adelante para cubrir otros dispositivos)*
+El RGB sigue el color del tema. Los efectos van por software (el firmware no los soporta nativo). Solo para el ITE5570 de ASUS TUF; otros teclados quedan fuera por diseño — para eso está OpenRGB.
 
-```
 Fn + F4   # cicla efectos: estático, respiración, arcoíris, pulso, strobe
-```
+## Comandos
 
-## Atajos
-
-Toda la interfaz son atajos `horus-*` que quedan disponibles para acceso rápido tras la instalación. *(todos en inglés por profesionalismo y para que los gringos no se me pongan a chillar al poner una ñ en la terminal)*
+Toda la interfaz son atajos `horus-*` disponibles tras la instalación:
 
 | Comando | Qué hace |
 |---|---|
-| `horus-start` | Instalación / reconfiguración (muestra el plan y pide confirmación). |
-| `horus-theme` | Cambiar de tema (sin argumentos abre el selector). |
-| `horus-language` | Cambiar el idioma del sistema (ES / EN). |
+| `horus-start` | Instalación / reconfiguración. `--solo=<seccion>` corre secciones sueltas. |
+| `horus-theme` | Aplica el tema (morado). Aplicador vivo, sin selector. |
+| `horus-power` | Perfiles de energía y modos de GPU. |
 | `horus-update` | Actualiza mirrors + repos/AUR + Flatpaks. |
 | `horus-check` | Diagnóstico del setup: qué está bien y qué falta. |
-| `horus-sync` | Vuelca tu ~/.config al repo (para commitear tus cambios). |
+| `horus-sync` | Vuelca tu `~/.config` al repo (para commitear cambios de GUI). |
 
-## Estructura del repositorio (Beta 1.2)
+> **Nota de mantenimiento:** los comandos `horus-*` viven copiados en `~/.local/bin` (no son symlinks al repo). Editar el repo no basta: hay que sincronizar la copia (`horus-sync` o `cp local-bin/* ~/.local/bin/`) antes de probar.
 
-```
-horus/
+## Estructura del repositorio
+Horus-Project/
 ├── bootstrap.sh          # instalación de un comando
 ├── setup_master.sh       # instalador maestro (secciones idempotentes)
 ├── config/               # dotfiles → ~/.config (niri, noctalia, foot)
 ├── local-bin/            # atajos horus-* → ~/.local/bin
-├── branding/         # logo y config de fastfetch (el tema los rota)
-├── sugar-dark-horus/       # tema de SDDM
+├── branding/             # logo y config de fastfetch (el tema los rota)
+├── sugar-dark-horus/     # tema de SDDM
 ├── proyectar/            # utilidad de proyección a monitores
 ├── system/               # servicios systemd (hook de energía)
 ├── udev/                 # reglas (RGB del teclado)
 ├── Wallpapers/  PFP/     # fondos y avatar
-└── horus_themes.py          # motor de color
-```
+└── horus_themes.py       # motor de color
+La rama `archive/wizard-temas-folders` conserva el estado anterior (wizard de instalación, selector multi-tema, recoloreo de carpetas de Thunar) por si alguna vez lo quiero de vuelta.
 
 ## Créditos
 
-Horus Project lo construyo y mantengo yo, un estudiante universitario que en mis ratos libres me pongo a jugar con líneas de código en Python.
-
-Gracias por leer y escoger Horus Project.
+Lo construyo y mantengo yo, un estudiante de Ingeniería Biomédica que en ratos libres juega con Python. Gracias por leer.
