@@ -2,7 +2,7 @@
 pkgname=proyectar
 pkgver=1.0.0
 pkgrel=1
-pkgdesc="Toggle de monitores espejo/extendido para Niri (Horus Project)"
+pkgdesc="Toggle de monitores espejo/extendido para Niri (Horus)"
 arch=('any')
 url="https://github.com/Johankyuk/Horus-Project"
 license=('MIT')

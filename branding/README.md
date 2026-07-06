@@ -1,6 +1,6 @@
 # branding
 
-Branding visual de Horus Project. Sin identidad falsa: `os-release` y compañía
+Branding visual de Horus. Sin identidad falsa: `os-release` y compañía
 quedan intactos — esto es un post-install sobre la distro, no una distro.
 
 - `horus-ascii.txt` — logo (ojo de Horus) para fastfetch, con placeholders

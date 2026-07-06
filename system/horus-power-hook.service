@@ -1,5 +1,5 @@
 [Unit]
-Description=Horus Project — power-limit de la dGPU segun el perfil de energia
+Description=Horus — power-limit de la dGPU segun el perfil de energia
 After=multi-user.target
 
 [Service]

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# horus_themes.py — Motor de temas de Horus Project  (v2)
+# horus_themes.py — Motor de temas de Horus  (v2)
 #   Genera familias de tema rotando el TONO de la paleta base "Morada"
 #   en espacio OKLCH (conserva luz y croma de cada color), con tres
 #   correcciones de limpieza:

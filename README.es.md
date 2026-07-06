@@ -1,4 +1,4 @@
-# Horus Project
+# Horus
 
 > Un rice de Noctalia que se me fue de las manos y terminó siendo mi post-install personal para CachyOS.
 
@@ -26,7 +26,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/Johankyuk/Horus-Project/main
 - Apps de diario: VLC, imv, OBS, OnlyOffice, VSCodium, Steam (con su fix de Wayland), Sober (Roblox).
 - Gestión de **energía y GPU híbrida** para portátiles con dGPU NVIDIA.
 - **RGB del teclado** con efectos por software (ASUS TUF / ITE5570).
-- Branding propio: boot negro con título "Horus Project (tu base)" y fastfetch con el ojo de Horus en morado. Sin `os-release` falso: no es una distro y no se disfraza de una.
+- Branding propio: boot negro con título "Horus (tu base)" y fastfetch con el ojo de Horus en morado. Sin `os-release` falso: no es una distro y no se disfraza de una.
 
 ## Tema
 

@@ -1,5 +1,5 @@
 [Unit]
-Description=Horus Project — GPU de sesion segun perfil de energia
+Description=Horus — GPU de sesion segun perfil de energia
 [Service]
 ExecStart=%h/.local/bin/horus-gpu-watch
 Restart=on-failure

@@ -21,7 +21,7 @@
   "modules": [
     "title",
     "separator",
-    { "type": "os", "key": "OS", "format": "Horus Project ({name} {arch})" },
+    { "type": "os", "key": "OS", "format": "Horus ({name} {arch})" },
     "host",
     "kernel",
     "uptime",

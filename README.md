@@ -1,6 +1,6 @@
-# Horus Project
+# Horus
 
-> **Nota:** Horus Project dejó de ser un proyecto pensado para todo el mundo.
+> **Nota:** Horus dejó de ser un proyecto pensado para todo el mundo.
 
 Parte de lo que fue este proyecto —el asistente de instalación con múltiples modos, el selector de temas de color, el recoloreo de carpetas de Thunar y el soporte bilingüe— se archivó por ser demasiado demandante de mantener. Era trabajo que crecía más rápido de lo que podía sostenerlo en solitario.
 

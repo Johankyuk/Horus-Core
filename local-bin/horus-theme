@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# horus-theme — Aplica un tema de Horus Project a todo el sistema.
+# horus-theme — Aplica un tema de Horus a todo el sistema.
 #   Fuente unica de color: horus_themes.py. De ahi sale la paleta de
 #   cualquier tema y se propaga a Noctalia, foot, Niri y el wallpaper.
 #   Resuelve el doble rol de algunos hex (p.ej. #c44fe6 = secondary en
@@ -456,7 +456,7 @@ def _elegir():
     cur = open(STATE).read().strip() if os.path.isfile(STATE) else None
     def e(s=""): print(s, file=sys.stderr)
     while True:
-        e(f"{C['p']}╭─ Tema de Horus Project ─╮{C['n']}")
+        e(f"{C['p']}╭─ Tema de Horus ─╮{C['n']}")
         for i, t in enumerate(temas, 1):
             sw = _swatch(kt.construir(t)["mPrimary"])
             marca = f" {C['ok']}(actual){C['n']}" if t == cur else ""

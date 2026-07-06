@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # steam-fix — aplica fixes conocidos de juegos de Steam en Linux/Proton
 #
-# Parchea juegos que no corren bien bajo Proton/Linux. Pensado para Horus Project pero
+# Parchea juegos que no corren bien bajo Proton/Linux. Pensado para Horus pero
 # generalizado para que sirva en otras maquinas y GPUs.
 #
 # Fixes incluidos:

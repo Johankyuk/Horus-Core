@@ -1,6 +1,6 @@
 #!/bin/bash
 export HORUS_NO_CLOSE=1  # horus-theme no debe cerrar la terminal del setup
-# Descripcion: Setup maestro - CachyOS -> Horus Project (Niri + Noctalia)
+# Descripcion: Setup maestro - CachyOS -> Horus (Niri + Noctalia)
 #               Instala paquetes, despliega configs y aplica branding.
 # Uso:   La interfaz son los atajos horus-* (se despliegan en la 1ª corrida y quedan
 #        en PATH). Cada atajo es este script con su modo:
@@ -83,7 +83,7 @@ for arg in "$@"; do
         --solo=*)       SOLO_RAW="${arg#*=}" ;;
         -h|--help)
             cat <<'EOF'
-Horus Project — setup maestro. Interfaz: atajos horus-* (en PATH tras la 1ª corrida).
+Horus — setup maestro. Interfaz: atajos horus-* (en PATH tras la 1ª corrida).
   horus-start       corrida completa (muestra el plan y pide confirmación)
   horus-dry         solo el plan, no toca nada
   horus-check       healthcheck post-setup
@@ -388,7 +388,7 @@ declare -A SEC_DESC=(
     [gtk]="GTK, iconos y Thunar"
     [cursor]="Cursor morado Bibata"
     [sddm]="SDDM Sugar-Dark"
-    [branding]="Branding Horus Project (systemd-boot)"
+    [branding]="Branding Horus (systemd-boot)"
     [steam]="Steam (wrapper anti-pantalla-negra del cliente)"
     [teclado]="RGB del teclado (regla udev ITE5570)"
     [recursos]="Recursos + batería"
@@ -472,7 +472,7 @@ fi
 
 # MODO --check : healthcheck post-setup
 if [ "$DO_CHECK" -eq 1 ]; then
-    section "Healthcheck Horus Project"
+    section "Healthcheck Horus"
     chk(){ if eval "$2" &>/dev/null; then ok "$1"; else warn "$1 — FALTA"; fi; }
     chk "Niri instalado"               "pacman -Q niri"
     chk "Noctalia instalado"           "pacman -Q noctalia-shell"
@@ -714,7 +714,7 @@ sec_snapshot() {
 # CachyOS trae btrfs + snapper + limine. Un snapshot ANTES de tocar el sistema
 # permite revertir si algo sale mal. Solo si snapper esta configurado.
 if command -v snapper &>/dev/null && sudo snapper list-configs 2>/dev/null | grep -q root; then
-    sudo snapper -c root create -d "pre setup_master Horus Project" \
+    sudo snapper -c root create -d "pre setup_master Horus" \
         && ok "Snapshot 'pre setup_master' creado (revierte con snapper si hace falta)." \
         || nota "No se pudo crear snapshot; continúo de todos modos."
 else
@@ -1062,7 +1062,7 @@ import os, json, sys
 config={"$schema":"https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
   "logo":{"source":"~/.config/fastfetch/logo.txt","type":"file","padding":{"right":4}},
   "display":{"color":{"title":"default","keys":"38;2;200;166;249","output":"default","separator":"default"},"percent":{"color":{"green":"38;2;200;166;249","yellow":"38;2;200;166;249","red":"38;2;200;166;249"}}},
-  "modules":[{"type":"os","key":"OS","format":"Horus Project"},"host","kernel","uptime","packages",
+  "modules":[{"type":"os","key":"OS","format":"Horus"},"host","kernel","uptime","packages",
     "shell","display","wm","theme","font","cursor","terminal","terminalfont","cpu","gpu",
     "memory","swap",{"type":"disk","folders":"/"},{"type":"localip","showIpv4":True},
     "battery","locale"]}
@@ -1408,7 +1408,7 @@ fi
 #      processes"), y eso es irreductible sin Plymouth. 'autogen' lo respeta en
 #      cada update de kernel.
 #      DEFAULT_ENTRY="manual" evita que pise 'default @saved'.
-#   2) Un script propio (horus-title) reescribe el título a "Horus Project" y garantiza el
+#   2) Un script propio (horus-title) reescribe el título a "Horus" y garantiza el
 #      silencio; un hook de pacman (zzz-, corre DESPUÉS de sdboot-kernel-update.hook)
 #      lo reaplica tras cada autogen.
 # Además se desactiva Plymouth por completo (fuera del initramfs Y con
@@ -1476,15 +1476,15 @@ else
         fi
     fi
 
-    # --- 3. Script de branding (título Horus Project + silencio garantizado) ---
+    # --- 3. Script de branding (título Horus + silencio garantizado) ---
     sudo tee /usr/local/bin/horus-title >/dev/null <<'HORUSEOF'
 #!/bin/bash
-# Reaplica branding Horus Project a las entradas de systemd-boot tras sdboot-manage:
-#   - título "Horus Project" (sdboot-manage lo deriva del nombre del kernel; esto lo corrige)
+# Reaplica branding Horus a las entradas de systemd-boot tras sdboot-manage:
+#   - título "Horus" (sdboot-manage lo deriva del nombre del kernel; esto lo corrige)
 #   - arranque silencioso (negro), sin tokens duplicados ni 'splash'
 # Lo instala/reaplica el setup (sección branding) y el hook zzz-horus-branding.
 set -u
-# Distro base real desde os-release (ya sin identidad falsa): "Horus Project (CachyOS)"
+# Distro base real desde os-release (ya sin identidad falsa): "Horus (CachyOS)"
 BASE=$(. /etc/os-release 2>/dev/null; echo "${NAME:-Linux}")
 SILENCIO=(quiet loglevel=3 rd.udev.log_level=3 vt.global_cursor_default=0 systemd.show_status=false)
 QUITAR=(splash)
@@ -1492,10 +1492,10 @@ shopt -s nullglob
 for f in /boot/loader/entries/*.conf; do
   base=$(basename "$f" .conf)
   case "$base" in
-    *lts*fallback*) t="Horus Project ($BASE, LTS, fallback)";;
-    *lts*)          t="Horus Project ($BASE, LTS)";;
-    *fallback*)     t="Horus Project ($BASE, fallback)";;
-    *)              t="Horus Project ($BASE)";;
+    *lts*fallback*) t="Horus ($BASE, LTS, fallback)";;
+    *lts*)          t="Horus ($BASE, LTS)";;
+    *fallback*)     t="Horus ($BASE, fallback)";;
+    *)              t="Horus ($BASE)";;
   esac
   if grep -q '^title' "$f"; then sed -i "s|^title.*|title $t|" "$f"
   else sed -i "1i title $t" "$f"; fi
@@ -1525,7 +1525,7 @@ Target = usr/lib/modules/*/vmlinuz
 Target = boot/vmlinuz*
 
 [Action]
-Description = Reaplicando branding Horus Project en el menu de arranque
+Description = Reaplicando branding Horus en el menu de arranque
 When = PostTransaction
 Exec = /usr/local/bin/horus-title
 HORUSEOF
@@ -1539,10 +1539,10 @@ HORUSEOF
     # --- 6. Aplicar ahora sobre las entradas existentes ---
     if sudo /usr/local/bin/horus-title; then
         if [ "$_cambio" -eq 1 ]; then
-            did "Branding Horus Project aplicado (systemd-boot: título + boot negro)."
+            did "Branding Horus aplicado (systemd-boot: título + boot negro)."
             NEED_REBOOT=1; REBOOT_RAZONES+=("branding de arranque")
         else
-            skip "Branding Horus Project ya estaba aplicado."
+            skip "Branding Horus ya estaba aplicado."
         fi
     else
         fallo "horus-title falló; revisa /boot/loader/entries a mano."
@@ -1581,7 +1581,7 @@ else
     _wrap_tmp=$(mktemp)
     cat > "$_wrap_tmp" <<'STEAMWRAP_EOF'
 #!/usr/bin/env bash
-# Wrapper de Steam para Horus Project — antepone -cef-disable-gpu a toda invocación de
+# Wrapper de Steam para Horus — antepone -cef-disable-gpu a toda invocación de
 # 'steam' para evitar el crash del proceso GPU de Chromium (CEF) en la iGPU Intel,
 # que deja el cliente EN NEGRO al arrancar en frío desde el .desktop de un juego.
 # Steam es de instancia única: basta con garantizar que SIEMPRE arranque con el
@@ -2107,7 +2107,7 @@ sec_zen() {
 # el lockscreen de Noctalia. Aplica al reiniciar (logind lee el drop-in al boot).
 sec_sesion() {
     sudo install -Dm644 /dev/stdin /etc/systemd/logind.conf.d/10-horus-lock.conf <<'HORUSEOF'
-# Horus Project — tecla power y cierre de tapa BLOQUEAN (no suspenden ni apagan).
+# Horus — tecla power y cierre de tapa BLOQUEAN (no suspenden ni apagan).
 [Login]
 HandlePowerKey=lock
 HandleLidSwitch=lock

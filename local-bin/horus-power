@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# horus-power — energía + ventiladores + GPU (Hybrid, para laptop). Horus / Horus Project.
+# horus-power — energía + ventiladores + GPU (Hybrid, para laptop). Horus.
 #
 # MODELO (todo gira en torno al PERFIL, sin comandos por juego):
 #   La base es Hybrid + la dGPU se AUTOSUSPENDE (D3cold) cuando nada la usa, y el

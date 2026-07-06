@@ -1,5 +1,5 @@
 #!/bin/bash
-# Bootstrap de Horus Project sobre una CachyOS ya instalada.
+# Bootstrap de Horus sobre una CachyOS ya instalada.
 # Instala git, clona el repo y lanza el setup en un solo paso.
 #
 # Uso (instalacion rapida, estilo Omarchy):
@@ -34,7 +34,7 @@ if [ -d "$DEST/.git" ]; then
     git -C "$DEST" fetch --depth 1 origin "$REF"
     git -C "$DEST" reset --hard "origin/$REF"
 else
-    say "Clonando Horus Project en $DEST..."
+    say "Clonando Horus en $DEST..."
     git clone --depth 1 --branch "$REF" "$REPO_URL" "$DEST"
 fi
 

@@ -25,7 +25,7 @@ _find_repo() {
 
 REPO="$(_find_repo)"
 if [ -z "$REPO" ]; then
-    echo "horus-start: no encuentro el repo de Horus Project." >&2
+    echo "horus-start: no encuentro el repo de Horus." >&2
     echo "  Defini la ruta con:  echo /ruta/al/repo > ~/.config/horus/repo" >&2
     echo "  o exporta:           HORUS_DIR=/ruta/al/repo" >&2
     exit 1

@@ -9,7 +9,7 @@ layout {
         proportion 0.66667
     }
 
-    // ─────── Tema Horus Project — "Horus" (derivada del wallpaper) ───────
+    // ─────── Tema Horus — "Horus" (derivada del wallpaper) ───────
     focus-ring {
         width 4
         active-color   "#7a2be8"
