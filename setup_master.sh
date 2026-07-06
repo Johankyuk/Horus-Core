@@ -2045,13 +2045,17 @@ sec_sistema() {
         systemctl --user daemon-reload
         systemctl --user enable --now horus-gpu-watch &>/dev/null && did "horus-gpu-watch activo."
     fi
-    # 4) Sober: override del .desktop exportado (file-forwarding + %u literal = crash)
+    # 4) Sober: override del .desktop exportado (fix launcher + URIs roblox://)
+    #    Clave: conservar %u (sin él los links roblox:// abren Sober sin destino)
     local sober="$HOME/.local/share/flatpak/exports/share/applications/org.vinegarhq.Sober.desktop"
     if [ -f "$sober" ]; then
+        local dst="$HOME/.local/share/applications/org.vinegarhq.Sober.desktop"
         mkdir -p "$HOME/.local/share/applications"
-        sed 's| --file-forwarding | |; s| -- @@u %u @@||' "$sober" \
-            > "$HOME/.local/share/applications/org.vinegarhq.Sober.desktop"
-        did "Sober: .desktop sin file-forwarding (fix launcher)."
+        sed 's| --file-forwarding | |; s|@@u %u @@|%u|' "$sober" > "$dst"
+        grep -q 'x-scheme-handler/roblox' "$dst" || echo 'MimeType=x-scheme-handler/roblox;' >> "$dst"
+        xdg-mime default org.vinegarhq.Sober.desktop x-scheme-handler/roblox
+        update-desktop-database "$HOME/.local/share/applications" &>/dev/null
+        did "Sober: .desktop con %u + handler roblox:// registrado."
     fi
 }
 
