@@ -611,29 +611,12 @@ fi
 
 # PLAN + CONFIRMACION (flujo completo pregunta; --solo va directo)
 if [ "${#SOLO_SECS[@]}" -eq 0 ]; then
-    # ── Asistente gum: idioma → modo → paquetes → tema ───────
-    # La UI vive en lib/ui.sh (la comparte preview/ui-preview.sh).
-    # El asistente NO instala: solo decide qué secciones corren y deja la
-    # ejecución a la maquinaria de siempre (SELECCION + bucle de despacho).
-    if [ ! -f "$SCRIPT_DIR/lib/ui.sh" ]; then
-        err "Falta $SCRIPT_DIR/lib/ui.sh (capa de interfaz del instalador)."; exit 1
-    fi
-    # shellcheck source=/dev/null
-    source "$SCRIPT_DIR/lib/ui.sh"
-    HORUS_DGPU=0;  lspci 2>/dev/null | grep -qi nvidia && HORUS_DGPU=1
-    HORUS_SDBOOT=1; sudo bootctl is-installed &>/dev/null || HORUS_SDBOOT=0  # ESP root-only: sin sudo, falso negativo
-    [ "$HORUS_PREVIEW" -eq 1 ] && export HORUS_UI_PREVIEW=1
-
-    if ! horus_wizard; then exit 0; fi   # el asistente ya avisó si se canceló
-
-    # Mapear elecciones → SELECCION (núcleo siempre; orden canónico)
-    declare -A PKG_ON=([nucleo]=1)
-    case "$HORUS_MODE" in
-        full)   PKG_ON[cosmeticos]=1; PKG_ON[apps]=1; PKG_ON[gaming]=1
-                [ "$HORUS_DGPU" = "1" ] && PKG_ON[rendimiento]=1 ;;
-        min)    : ;;   # solo núcleo
-        custom) for _p in "${HORUS_PKGS[@]}"; do PKG_ON["$_p"]=1; done ;;
-    esac
+    # Instalación completa fija (sin wizard): morado, español, todas las secciones.
+    HORUS_MODE=full
+    HORUS_THEME="Morado"
+    HORUS_LANG_NAME="Español"
+    declare -A PKG_ON=([nucleo]=1 [cosmeticos]=1 [apps]=1 [gaming]=1)
+    [ "$HORUS_DGPU" = "1" ] && PKG_ON[rendimiento]=1
     SELECCION=()
     for _s in "${SECCIONES[@]}"; do
         [ -n "${PKG_ON[${SEC_PKG[$_s]:-}]:-}" ] && SELECCION+=("$_s")

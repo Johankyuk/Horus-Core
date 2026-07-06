@@ -313,70 +313,6 @@ def patch_cursor(tema):
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         warn(f"Cursor '{name}' generandose en 2o plano (~10 min); se aplicara y notificara solo.")
 
-def patch_folders(tema):
-    # Carpetas de Thunar: overlay que hereda de Papirus-Dark y recolorea la familia
-    # violet (#7e57c2 cara / #5d399b borde) al hex del tema. Sin papirus-folders,
-    # sin sudo, sin duplicar Papirus: solo las carpetas van al overlay, el resto se
-    # hereda. Cacheado en ~/.icons/Papirus-Horus-<slug>.
-    PAPIRUS = "/usr/share/icons/Papirus"
-    if not os.path.isdir(PAPIRUS):
-        warn("Papirus no instalado; carpetas del tema omitidas."); return
-    slug = tema.lower().replace(" ", "_")
-    dst = os.path.join(HOME, ".icons", f"Papirus-Horus-{slug}")
-    if not os.path.isdir(dst):
-        cara, borde = kt.folder_hex(tema)
-        n = 0
-        for svg in glob.glob(os.path.join(PAPIRUS, "**", "folder-violet*.svg"), recursive=True):
-            rel = os.path.relpath(svg, PAPIRUS)
-            out = os.path.join(dst, rel)
-            os.makedirs(os.path.dirname(out), exist_ok=True)
-            if os.path.islink(svg):
-                try: os.symlink(os.readlink(svg), out)
-                except FileExistsError: pass
-                continue
-            txt = open(svg, encoding="utf-8").read()
-            txt = re.sub("#7e57c2", cara, txt, flags=re.I)
-            txt = re.sub("#5d399b", borde, txt, flags=re.I)
-            open(out, "w", encoding="utf-8").write(txt); n += 1
-        _escribe_index_theme(dst, slug)
-        subprocess.run(["gtk-update-icon-cache", "-f", dst], capture_output=True)
-        did(f"Carpetas recoloreadas ({n} svg) -> Papirus-Horus-{slug}")
-    _aplica_icon_theme(f"Papirus-Horus-{slug}")
-
-def _escribe_index_theme(dst, slug):
-    # GTK exige que index.theme liste cada subdirectorio con su seccion [dir], o
-    # ignora el tema ("has no directories"). Escaneamos lo que de verdad se genero.
-    dirs = sorted(
-        os.path.relpath(r, dst)
-        for r, _, files in os.walk(dst)
-        if any(x.endswith(".svg") for x in files)
-    )
-    lineas = ["[Icon Theme]", f"Name=Papirus-Horus-{slug}",
-              "Inherits=Papirus-Dark,hicolor",
-              "Directories=" + ",".join(dirs), ""]
-    for d in dirs:
-        m = re.match(r"(\d+)x\d", d)
-        size = m.group(1) if m else "48"
-        scale = "2" if "@2x" in d else "1"
-        lineas += [f"[{d}]", f"Size={size}", "Context=Places",
-                   "Type=Fixed", f"Scale={scale}", ""]
-    open(os.path.join(dst, "index.theme"), "w").write("\n".join(lineas))
-
-def _aplica_icon_theme(name):
-    # Activa el icon-theme via GTK settings.ini (gtk3/4) y refresca Thunar en vivo.
-    for ver in ("3.0", "4.0"):
-        ini = os.path.join(CFG, f"gtk-{ver}", "settings.ini")
-        if not os.path.isfile(ini): continue
-        txt = open(ini, encoding="utf-8").read()
-        if re.search(r"^gtk-icon-theme-name=", txt, flags=re.M):
-            txt = re.sub(r"^gtk-icon-theme-name=.*$", f"gtk-icon-theme-name={name}", txt, flags=re.M)
-        else:
-            txt = txt.rstrip()+f"\ngtk-icon-theme-name={name}\n"
-        open(ini, "w", encoding="utf-8").write(txt)
-    subprocess.run(["gsettings","set","org.gnome.desktop.interface","icon-theme",name],
-                   capture_output=True)
-    subprocess.run(["thunar","-q"], capture_output=True)
-
 def stop_noctalia():
     # Se mata ANTES de escribir settings.json: Noctalia guarda su config en
     # memoria al salir y pisaria lo recien escrito (wallpaper/scheme nuevos).
@@ -498,7 +434,6 @@ def aplicar(tema):
     recolorear_terminales()    # ← pinta las foot abiertas con el tema entrante
     patch_fastfetch(tema, ts)  # ← logo/keys/title de fastfetch siguen el tema
     patch_cursor(tema)         # cursor Bibata del tema (build en 2o plano si falta)
-    patch_folders(tema)        # ← carpetas Thunar/Papirus siguen el tema
     # patch_gtk(tema, ts)      # (pendiente) fondo/acento GTK de Thunar
     save_state(tema)
     # ── Wallpaper del tema + reinicio de Noctalia (orden anti-carrera) ──
