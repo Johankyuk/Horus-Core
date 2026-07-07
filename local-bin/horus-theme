@@ -183,13 +183,104 @@ def gen_qt6ct(tema, ts):
                        f"disabled_colors={argb(off)}\n"
                        f"inactive_colors={argb(inact)}\n",
                        f"Paleta Qt (qt6ct) -> {tema}", ts)
+    icono = "Horus-Folders" if os.path.isdir(FOLDERS_DIR) else "Papirus-Dark"
     _escribe_si_cambia(os.path.join(CFG, "qt6ct", "qt6ct.conf"),
                        "[Appearance]\n"
                        f"color_scheme_path={esquema}\n"
                        "custom_palette=true\n"
+                       f"icon_theme={icono}\n"
                        "style=Fusion\n"
                        "standard_dialogs=default\n",
                        "qt6ct.conf (Fusion + esquema Horus)", ts)
+
+# ── 1c) Carpetas: overlay Horus-Folders (Papirus recoloreado al tema) ──
+#   Sustituye a papirus-folders (AUR): en vez de elegir entre familias
+#   pre-horneadas de Papirus (los verdes no cuadraban), se toma la familia
+#   violet como plantilla y se rotan sus hex al tono/croma del mPrimary del
+#   tema con el MISMO motor OKLCH. Los neutros (blanco/gris, croma≈0) no se
+#   mueven. El overlay hereda de Papirus-Dark: solo trae folder*.svg, todo
+#   lo demas lo sigue dando Papirus. gtk-update-icon-cache al final.
+PAPIRUS_VIOLET = "#7e57c2"   # color principal de la familia plantilla
+FOLDERS_DIR = os.path.join(HOME, ".local", "share", "icons", "Horus-Folders")
+
+def _papirus_dir():
+    for d in ("/usr/share/icons/Papirus",
+              os.path.join(HOME, ".local", "share", "icons", "Papirus")):
+        if os.path.isdir(d):
+            return d
+    return None
+
+def _set_ini_key(path, seccion, clave, valor):
+    """Fija clave=valor en un INI simple (settings.ini de GTK). Best-effort."""
+    try:
+        lineas = open(path, encoding="utf-8").read().splitlines() if os.path.isfile(path) else [f"[{seccion}]"]
+        if not any(l.strip() == f"[{seccion}]" for l in lineas):
+            lineas.insert(0, f"[{seccion}]")
+        out, hecho = [], False
+        for l in lineas:
+            if l.split("=")[0].strip() == clave:
+                l, hecho = f"{clave}={valor}", True
+            out.append(l)
+        if not hecho:
+            out.insert(next(i for i, l in enumerate(out) if l.strip() == f"[{seccion}]") + 1,
+                       f"{clave}={valor}")
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        open(path, "w", encoding="utf-8").write("\n".join(out) + "\n")
+        return True
+    except Exception:
+        return False
+
+def gen_folders(tema, ts):
+    src_root = _papirus_dir()
+    if not src_root:
+        warn("Papirus no esta instalado; carpetas del tema se omiten."); return
+    if tema == "Gris":
+        rot = lambda h: kt._rot(h, 0, gray=True)
+    else:
+        Lp, Cp, Hp = kt._lch(kt.construir(tema)["mPrimary"])
+        Lv, Cv, Hv = kt._lch(PAPIRUS_VIOLET)
+        dh, fC = (Hp - Hv) % 360, (min(1.6, Cp / Cv) if Cv else 1.0)
+        rot = lambda h: kt._rot(h, dh, fC=fC)
+    rx = re.compile(r"#([0-9a-fA-F]{6})\b")
+    sizes, escritos, total = [], 0, 0
+    for size_dir in sorted(os.listdir(src_root)):
+        places = os.path.join(src_root, size_dir, "places")
+        svgs = sorted(glob.glob(os.path.join(places, "folder-violet*.svg")))
+        if not svgs:
+            continue
+        out_dir = os.path.join(FOLDERS_DIR, size_dir, "places")
+        os.makedirs(out_dir, exist_ok=True)
+        sizes.append(size_dir)
+        for svg in svgs:
+            nombre = "folder" + os.path.basename(svg)[len("folder-violet"):]
+            txt = open(os.path.realpath(svg), encoding="utf-8").read()
+            out = rx.sub(lambda m: rot("#" + m.group(1)), txt)
+            dstf = os.path.join(out_dir, nombre); total += 1
+            if not (os.path.isfile(dstf) and open(dstf, encoding="utf-8").read() == out):
+                open(dstf, "w", encoding="utf-8").write(out); escritos += 1
+    if not sizes:
+        warn("Papirus sin familia violet (places); carpetas se omiten."); return
+    idx = ("[Icon Theme]\nName=Horus-Folders\n"
+           "Comment=Carpetas Papirus recoloreadas al tema Horus\n"
+           "Inherits=Papirus-Dark,Papirus,hicolor\n"
+           f"Directories={','.join(s + '/places' for s in sizes)}\n\n"
+           + "\n".join(f"[{s}/places]\nSize={s.split('x')[0]}\nContext=Places\nType=Fixed\n"
+                       for s in sizes))
+    _escribe_si_cambia(os.path.join(FOLDERS_DIR, "index.theme"), idx,
+                       "index.theme (Horus-Folders)", ts)
+    if escritos:
+        _CAMBIOS[0] = True
+        did(f"Carpetas -> {tema} ({escritos}/{total} SVG regenerados).")
+    else:
+        skip(f"Carpetas: ya estaban en '{tema}' ({total} SVG).")
+    subprocess.run(["gtk-update-icon-cache", "-f", "-q", FOLDERS_DIR],
+                   check=False, capture_output=True)
+    # GTK tambien apunta al overlay (PCManFM-Qt lo toma via qt6ct en gen_qt6ct)
+    for ini in (os.path.join(CFG, "gtk-3.0", "settings.ini"),
+                os.path.join(CFG, "gtk-4.0", "settings.ini")):
+        _set_ini_key(ini, "Settings", "gtk-icon-theme-name", "Horus-Folders")
+    subprocess.run(["gsettings", "set", "org.gnome.desktop.interface",
+                    "icon-theme", "Horus-Folders"], check=False, capture_output=True)
 
 # ── 2) foot: parchea colores (ANSI semanticos quedan fijos) ──
 def gen_foot(tema, ts):
@@ -476,6 +567,7 @@ def aplicar(tema):
     recolorear_terminales()    # ← pinta las foot abiertas con el tema entrante
     patch_fastfetch(tema, ts)  # ← logo/keys/title de fastfetch siguen el tema
     patch_cursor(tema)         # cursor Bibata del tema (build en 2o plano si falta)
+    gen_folders(tema, ts)      # ← carpetas Papirus recoloreadas (overlay Horus-Folders)
     gen_qt6ct(tema, ts)        # ← paleta Qt (PCManFM-Qt y demas apps Qt)
     save_state(tema)
     # ── Wallpaper del tema + reinicio de Noctalia (orden anti-carrera) ──
@@ -487,7 +579,7 @@ def aplicar(tema):
         set_wallpaper_activo(png, ts)  # 2. escribir wallpaper del tema
         _asegura_dark(ts)              # 3. asegurar modo oscuro
         reload_hot(png)                # 4. arrancar Noctalia + wallpaper via IPC
-        did(f"Tema '{tema}' aplicado (Niri + Noctalia + foot + Qt + teclado + wallpaper + cursor). Respaldo: {os.path.join(BK_ROOT, ts)}")
+        did(f"Tema '{tema}' aplicado (Niri + Noctalia + foot + Qt + carpetas + teclado + wallpaper + cursor). Respaldo: {os.path.join(BK_ROOT, ts)}")
     else:
         skip(f"Todo ya estaba en '{tema}'. Sin cambios.")
     _cerrar_terminal()

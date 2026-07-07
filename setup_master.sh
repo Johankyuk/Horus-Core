@@ -155,7 +155,7 @@ PKGS_REPO=(
     # mangohud, gamescope, proton-cachyos, wine, vulkan…) y los launchers (Lutris,
     # Heroic…). Goverlay queda oculto del lanzador (lista OCULTAR). Requiere multilib.
     cachyos-gaming-meta
-    # Iconos (el recoloreado violet usa papirus-folders, que es AUR)
+    # Iconos (base; las carpetas por tema salen del overlay Horus-Folders de horus-theme)
     papirus-icon-theme
     # SDDM (el tema sugar-dark-horus ya no usa QtGraphicalEffects; qt5-quickcontrols2
     # se mantiene por si pruebas el greeter en modo Qt5)
@@ -180,7 +180,7 @@ PKGS_REPO=(
 PKGS_AUR=(
     noctalia-shell
     lavat-git cbonsai
-    catppuccin-gtk-theme-mocha papirus-folders bibata-cursor-theme rar
+    catppuccin-gtk-theme-mocha bibata-cursor-theme rar   # papirus-folders fuera: las carpetas por tema las genera horus-theme (overlay Horus-Folders)
     wob                             # OSD del brillo del teclado (horus-kbd-osd)
     # Espejo de pantalla para presentaciones (modo 'espejo' de ~/.local/bin/proyectar).
     # Niri no clona salidas de forma nativa; wl-mirror es el unico camino (fragil).
@@ -1230,13 +1230,8 @@ fi
 # SECCIÓN «gtk» — GTK / ICONOS / GESTOR DE ARCHIVOS / PORTAL
 sec_gtk() {
 
-# Carpetas Papirus en violet (lento: solo si no estan ya en violet)
-_folder_svg=$(find "$HOME/.local/share/icons/Papirus-Dark" /usr/share/icons/Papirus-Dark \
-    -path '*/places/*/folder.svg' 2>/dev/null | head -1)
-if [ -n "$_folder_svg" ] && [ -L "$_folder_svg" ] && readlink "$_folder_svg" | grep -q 'violet'; then
-    skip "Carpetas Papirus ya en violet."
-fi
-
+# Carpetas por tema: las genera horus-theme (overlay Horus-Folders, hereda de
+# Papirus-Dark) al aplicar el tema; aqui solo se deja la base segura Papirus-Dark.
 apply_gtk_key "$GTK3_CONF" "gtk-icon-theme-name" "Papirus-Dark"
 apply_gtk_key "$GTK3_CONF" "gtk-application-prefer-dark-theme" "1"
 apply_gtk_key "$GTK4_CONF" "gtk-icon-theme-name" "Papirus-Dark"
@@ -1288,6 +1283,7 @@ write_if_changed "$HOME/.config/qt6ct/qt6ct.conf" "qt6ct.conf (Fusion + esquema 
 [Appearance]
 color_scheme_path=$HOME/.config/qt6ct/colors/horus.conf
 custom_palette=true
+icon_theme=Papirus-Dark
 style=Fusion
 standard_dialogs=default
 QTEOF
