@@ -16,12 +16,10 @@ while true; do
         __GLX_VENDOR_LIBRARY_NAME=nvidia __VK_LAYER_NV_optimus=NVIDIA_only DRI_PRIME=1
       dbus-update-activation-environment --systemd __NV_PRIME_RENDER_OFFLOAD=1 \
         __GLX_VENDOR_LIBRARY_NAME=nvidia __VK_LAYER_NV_optimus=NVIDIA_only DRI_PRIME=1
-      notify-send "Horus GPU" "Rendimiento+AC: apps nuevas nacen en la RTX 4050." 2>/dev/null
     else
       systemctl --user unset-environment "${VARS[@]}"
       dbus-update-activation-environment --systemd __NV_PRIME_RENDER_OFFLOAD=0 \
         __GLX_VENDOR_LIBRARY_NAME= __VK_LAYER_NV_optimus= DRI_PRIME=0
-      [ -n "$estado" ] && notify-send "Horus GPU" "Apps nuevas nacen en la iGPU (Radeon)." 2>/dev/null
     fi
     estado="$nuevo"
   fi

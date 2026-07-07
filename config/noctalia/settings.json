@@ -154,7 +154,7 @@
     "shadowDirection": "bottom_right",
     "shadowOffsetX": 2,
     "shadowOffsetY": 3,
-    "language": "",
+    "language": "es",
     "allowPanelsOnScreenWithoutBar": true,
     "showChangelogOnStartup": false,
     "telemetryEnabled": false,

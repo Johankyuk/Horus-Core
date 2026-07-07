@@ -396,7 +396,7 @@ declare -A SEC_DESC=(
     [recursos]="Recursos + batería"
     [proyeccion]="Utilidad de proyección"
     [sesion]="Sesión: tecla power/tapa → bloqueo (sin suspender)"
-    [sistema]="Servicios de sistema (power-hook, keyd, gpu-watch, fix Sober)"
+    [sistema]="Servicios de sistema (power-hook, keyd, gpu-watch, fix Sober, Noctalia es)"
     [flatpak]="Flatpak + remoto Flathub"
     [zen]="Navegador Zen: tema Horus, prefs y extensiones"
     [rendimiento]="Rendimiento gráfico (supergfxctl, nvtop, horus-power)"
@@ -2077,6 +2077,40 @@ sec_sistema() {
         update-desktop-database "$HOME/.local/share/applications" &>/dev/null
         did "Sober: .desktop con %u + handler roblox:// registrado."
     fi
+    # 5) Noctalia en español: los toasts de perfil de energía tienen los nombres
+    #    hardcodeados en inglés en el QML (no pasan por Assets/Translations).
+    #    Parche de 3 cadenas + hook que lo reaplica tras cada update del paquete
+    #    (mismo patrón que el branding de systemd-boot). Idempotente: aplicado,
+    #    los patrones ingleses ya no matchean.
+    sudo tee /usr/local/bin/horus-noctalia-es >/dev/null <<'NOCTAEOF'
+#!/usr/bin/env bash
+# horus-noctalia-es — traduce cadenas hardcodeadas de Noctalia (toasts del
+# perfil de energía). Lo reaplica zzz-horus-noctalia-es.hook tras updates.
+set -u
+F=/etc/xdg/quickshell/noctalia-shell/Services/Power/PowerProfileService.qml
+[ -f "$F" ] || exit 0
+# Fix del ICONO del toast (valido en cualquier idioma): upstream deriva la clave
+# del icono del NOMBRE del perfil; con nombres traducidos la clave no existe y
+# cae a la calavera. getIcon() ya devuelve la clave correcta siempre.
+sed -i 's|profileName.toLowerCase().replace(" ", "")|root.getIcon()|' "$F"
+# Traduccion de nombres (es-especifico; gate por idioma pendiente):
+sed -i 's|return "Performance";|return "Rendimiento";|; s|return "Balanced";|return "Equilibrado";|; s|return "Power saver";|return "Ahorro de energía";|' "$F"
+NOCTAEOF
+    sudo chmod +x /usr/local/bin/horus-noctalia-es
+    sudo mkdir -p /etc/pacman.d/hooks
+    sudo tee /etc/pacman.d/hooks/zzz-horus-noctalia-es.hook >/dev/null <<'NOCTAEOF'
+[Trigger]
+Type = Package
+Operation = Install
+Operation = Upgrade
+Target = noctalia-shell
+
+[Action]
+Description = Reaplicando traduccion de toasts de Noctalia (Horus)
+When = PostTransaction
+Exec = /usr/local/bin/horus-noctalia-es
+NOCTAEOF
+    sudo /usr/local/bin/horus-noctalia-es && did "Toasts de Noctalia en español (parche + hook de pacman)."
 }
 
 # SECCIÓN «zen» — tema Horus para Zen (chrome, prefs, extensiones)
