@@ -15,3 +15,4 @@ setup_master.sh.bak
 *.zip
 __pycache__/
 *.pyc
+pendientes-horus*.md
