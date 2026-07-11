@@ -7,6 +7,5 @@ set -uo pipefail
 _here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$_here/../lib/ui.sh"
 export HORUS_UI_PREVIEW=1
-HORUS_DGPU=0;  lspci 2>/dev/null | grep -qi nvidia && HORUS_DGPU=1
 HORUS_SDBOOT=1; bootctl is-installed &>/dev/null || HORUS_SDBOOT=0
 horus_wizard

@@ -5,8 +5,7 @@
 #   Expone horus_wizard: idioma → modo → paquetes → tema → resumen → confirmar.
 #   Setea variables globales (HORUS_LANG, HORUS_MODE, HORUS_PKGS, HORUS_THEME) y
 #   devuelve 0 (confirmado) o 1 (cancelado).
-#   Lee HORUS_DGPU (1 si hay GPU dedicada) para ofrecer "Rendimiento gráfico"
-#   y HORUS_SDBOOT (0 si NO hay systemd-boot) para avisar del branding.
+#   Lee HORUS_SDBOOT (0 si NO hay systemd-boot) para avisar del branding.
 #   Si HORUS_UI_PREVIEW=1: no instala gum solo, y el cierre dice "preview".
 
 # ── Paleta Horus ─────────────────────────────────────────────
@@ -37,7 +36,6 @@ _kui_load_strings() {
     KS[cos]="Cosméticos — color por tema (cursor · GTK · focus-ring)"
     KS[apps]="Apps — oficina · multimedia · navegador · Steam"
     KS[gaming]="Gaming — juegos web nostálgicos + lanzador"
-    KS[perf]="Rendimiento gráfico — supergfxctl · nvtop · horus-power"
     KS[s3]="3 · Tema"
     KS[themen]="Recolorea Noctalia, foot, Niri, wallpaper, cursor y teclado."
     KS[themeq]="Elige un tema (o ninguno):"
@@ -61,7 +59,6 @@ _kui_load_strings() {
     KS[cos]="Cosmetics — per-theme color (cursor · GTK · focus-ring)"
     KS[apps]="Apps — office · media · browser · Steam"
     KS[gaming]="Gaming — nostalgic web games + launcher"
-    KS[perf]="Graphics performance — supergfxctl · nvtop · horus-power"
     KS[s3]="3 · Theme"
     KS[themen]="Recolors Noctalia, foot, Niri, wallpaper, cursor and keyboard."
     KS[themeq]="Pick a theme (or none):"
@@ -116,7 +113,7 @@ horus_wizard() {
 
   # Estado (globales, sin 'local', para que setup_master las vea)
   HORUS_LANG=""; HORUS_LANG_NAME=""; HORUS_MODE=""; HORUS_THEME=""; HORUS_PKGS=()
-  : "${HORUS_DGPU:=0}"; : "${HORUS_SDBOOT:=1}"
+  : "${HORUS_SDBOOT:=1}"
 
   # Paso 0 — idioma PRIMERO (pantalla neutra)
   clear
@@ -149,7 +146,6 @@ horus_wizard() {
     _kui_note "${KS[core]}"
     _kui_hint "${KS[pick]}"
     local _opc=("${KS[cos]}" "${KS[apps]}" "${KS[gaming]}")
-    [ "$HORUS_DGPU" = "1" ] && _opc+=("${KS[perf]}")
     local _sel=(); mapfile -t _sel < <(_kui_choose --no-limit --header "${KS[pkgq]}" --selected "${KS[cos]}" "${_opc[@]}")
     local x
     for x in "${_sel[@]}"; do
@@ -157,7 +153,6 @@ horus_wizard() {
         "${KS[cos]}")    HORUS_PKGS+=("cosmeticos") ;;
         "${KS[apps]}")   HORUS_PKGS+=("apps") ;;
         "${KS[gaming]}") HORUS_PKGS+=("gaming") ;;
-        "${KS[perf]}")   HORUS_PKGS+=("rendimiento") ;;
       esac
     done
     echo
