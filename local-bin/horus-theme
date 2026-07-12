@@ -18,6 +18,7 @@ import sys, os, re, json, shutil, subprocess, datetime, unicodedata, time, diffl
 def _localizar_repo():
     for c in (os.environ.get("HORUS_DIR"),
               os.path.expanduser("~/.config/horus/repo"),
+              os.path.expanduser("~/Horus-Project"),
               os.path.expanduser("~/Horus-Core")):
         if c and os.path.isfile(os.path.join(c, "horus_themes.py")):
             return os.path.abspath(c)
@@ -92,6 +93,7 @@ def skip(m): print(f"{C['p']}[=]{C['n']} {m}")
 def warn(m): print(f"{C['warn']}[i]{C['n']} {m}")
 
 _CAMBIOS = [False]
+_FOLDERS = [False]   # marca si gen_folders regenero SVGs (refresco PCManFM)
 def _backup(path, ts):
     if os.path.exists(path):
         rel = os.path.relpath(path, HOME)
@@ -270,6 +272,7 @@ def gen_folders(tema, ts):
                        "index.theme (Horus-Folders)", ts)
     if escritos:
         _CAMBIOS[0] = True
+        _FOLDERS[0] = True
         did(f"Carpetas -> {tema} ({escritos}/{total} SVG regenerados).")
     else:
         skip(f"Carpetas: ya estaban en '{tema}' ({total} SVG).")
@@ -550,6 +553,52 @@ def _cerrar_terminal():
     except Exception:
         pass
 
+def refrescar_pcmanfm():
+    # PCManFM-Qt cachea los iconos en memoria. El overlay Horus-Folders conserva
+    # su nombre y solo cambia el CONTENIDO de los SVG, asi que una ventana abierta
+    # no recarga los colores nuevos y Qt no ofrece recarga de icon-theme sin
+    # reinicio. Unica via fiable: reiniciar el gestor. Reabre en la ubicacion por
+    # defecto (la pestana exacta no es recuperable desde fuera del proceso).
+    exe = shutil.which("pcmanfm-qt")
+    if not exe: return
+    if not subprocess.run(["pgrep","-x","pcmanfm-qt"],
+                          capture_output=True, text=True).stdout.split(): return
+    subprocess.run(["pkill","-x","pcmanfm-qt"], check=False)
+    time.sleep(0.4)
+    subprocess.Popen(["setsid", exe],
+                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    did("PCManFM-Qt reiniciado (iconos del tema al dia).")
+
+def reload_noctalia_live(png=None):
+    # Repinta UI + wallpaper SIN reiniciar Noctalia. Al no matar el proceso, el
+    # idle-inhibitor (caffeine) y demas estado en memoria sobreviven. foot y niri
+    # recargan aparte (SIGUSR1 / load-config-file).
+    if shutil.which("niri"):
+        subprocess.run(["niri", "msg", "action", "load-config-file"], check=False)
+    subprocess.run(["pkill", "-USR1", "foot"], check=False)
+    if not shutil.which("qs"):
+        warn("qs no disponible; Noctalia sin repintar via IPC."); return
+    def _call(*a):
+        return subprocess.run(["qs", "-c", "noctalia-shell", "ipc", "call", *a],
+                              capture_output=True, text=True)
+    r = _call("colorScheme", "set", "Horus Project")
+    if r.returncode == 0:
+        did("Noctalia: colorscheme repintado en vivo.")
+    else:
+        warn(f"colorScheme.set fallo: {r.stderr.strip()[:80]}")
+    if not png: return
+    if not os.path.isfile(png):
+        warn(f"PNG del tema no existe: {png}"); return
+    scrs = _pantallas()
+    for scr in scrs:
+        _call("wallpaper", "set", png, scr)
+    got = _call("wallpaper", "get", scrs[0]).stdout or ""
+    if os.path.basename(png) in got or png in got:
+        did(f"Wallpaper -> {os.path.basename(png)} (en vivo)")
+    else:
+        warn("Noctalia no confirmo el wallpaper; reaplica o usa el selector.")
+
+
 def aplicar(tema):
     canon = _resolver_tema(tema)
     if canon is None:
@@ -570,18 +619,17 @@ def aplicar(tema):
     gen_folders(tema, ts)      # ← carpetas Papirus recoloreadas (overlay Horus-Folders)
     gen_qt6ct(tema, ts)        # ← paleta Qt (PCManFM-Qt y demas apps Qt)
     save_state(tema)
-    # ── Wallpaper del tema + reinicio de Noctalia (orden anti-carrera) ──
+    # ── Wallpaper + repintado en vivo (SIN reiniciar Noctalia: idle-inhibitor
+    #    / caffeine y demas estado en memoria sobreviven) ──
     png = wallpaper_del_tema(tema)
-    sj = os.path.join(CFG, "noctalia", "settings.json")
-    wp_cambia = bool(png) and os.path.isfile(sj) and png not in open(sj, encoding="utf-8").read()
-    if _CAMBIOS[0] or wp_cambia or os.environ.get("HORUS_FIRST") == "1":
-        stop_noctalia()            # 1. matar (o guardaria settings viejos al salir)
-        set_wallpaper_activo(png, ts)  # 2. escribir wallpaper del tema
-        _asegura_dark(ts)              # 3. asegurar modo oscuro
-        reload_hot(png)                # 4. arrancar Noctalia + wallpaper via IPC
-        did(f"Tema '{tema}' aplicado (Niri + Noctalia + foot + Qt + carpetas + teclado + wallpaper + cursor). Respaldo: {os.path.join(BK_ROOT, ts)}")
+    if _CAMBIOS[0] or os.environ.get("HORUS_FIRST") == "1":
+        _asegura_dark(ts)          # default oscuro (archivo; sin restart)
+        reload_noctalia_live(png)  # colorScheme.set + wallpaper set por pantalla (IPC)
+        did(f"Tema '{tema}' aplicado en vivo (Niri + Noctalia + foot + Qt + carpetas + teclado + wallpaper + cursor). Respaldo: {os.path.join(BK_ROOT, ts)}")
     else:
         skip(f"Todo ya estaba en '{tema}'. Sin cambios.")
+    if _FOLDERS[0]:
+        refrescar_pcmanfm()
     _cerrar_terminal()
 
 def _elegir():
