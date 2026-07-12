@@ -359,17 +359,6 @@ def save_state(tema):
     os.makedirs(os.path.dirname(STATE), exist_ok=True)
     open(STATE, "w").write(tema + "\n")
 
-# ── 5) Wallpaper activo: apunta Noctalia al PNG del tema ──────
-def set_wallpaper_activo(png, ts):
-    dst = os.path.join(CFG, "noctalia", "settings.json")
-    if not png or not os.path.isfile(dst):
-        warn("settings.json de Noctalia no hallado; wallpaper no apuntado."); return
-    txt = open(dst, encoding="utf-8").read()
-    # reemplaza el valor de cada "path" del wallpaper (los únicos con /Wallpapers/)
-    out = re.sub(r'("path"\s*:\s*")[^"]*Wallpapers/[^"]*(")',
-                 lambda m: m.group(1) + png + m.group(2), txt)
-    _escribe_si_cambia(dst, out, f"Wallpaper activo (Noctalia) -> {os.path.basename(png)}", ts)
-
 # ── 6) SDDM: MainColor/AccentColor (requiere root; best-effort) ─
 def patch_sddm(tema, ts):
     src = os.path.join(REPO, "sugar-dark-horus", "theme.conf")   # fuente Morada
@@ -449,13 +438,6 @@ def patch_cursor(tema):
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         warn(f"Cursor '{name}' generandose en 2o plano (~10 min); se aplicara y notificara solo.")
 
-def stop_noctalia():
-    # Se mata ANTES de escribir settings.json: Noctalia guarda su config en
-    # memoria al salir y pisaria lo recien escrito (wallpaper/scheme nuevos).
-    if shutil.which("qs"):
-        subprocess.run(["pkill", "-f", "noctalia-shell"], check=False)
-        time.sleep(0.6)
-
 def _pantallas():
     # Nombres de salida segun niri (eDP-1, HDMI-A-1, ...); [""] como fallback.
     try:
@@ -464,56 +446,6 @@ def _pantallas():
         return outs or [""]
     except Exception:
         return [""]
-
-def reload_hot(png=None):
-    # Recargas en caliente sin re-loguear.
-    if shutil.which("niri"):
-        subprocess.run(["niri", "msg", "action", "load-config-file"], check=False)
-    subprocess.run(["pkill", "-USR1", "foot"], check=False)  # foot relee colores con SIGUSR1
-    if shutil.which("qs"):
-        subprocess.Popen(["setsid", "qs", "-c", "noctalia-shell"],
-                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        # Noctalia NO lee el path del settings.json al arrancar, y su SET solo
-        # REPINTA cuando el path CAMBIA (si el estado ya coincide, no repinta y
-        # lo dibujado queda viejo). Truco sin parpadeo: se aplica primero una
-        # copia temporal del PNG (path nuevo -> repinta) y luego el path real
-        # del repo (cambia otra vez -> repinta lo mismo y el estado queda bien).
-        if png:
-            tmp = "/tmp/horus-wp-kick.png"
-            try:
-                shutil.copyfile(png, tmp)
-            except Exception:
-                tmp = None
-            def _set(ruta, scr):
-                subprocess.run(["qs", "-c", "noctalia-shell", "ipc", "call",
-                                "wallpaper", "set", ruta, scr], capture_output=True)
-            def _get(scr):
-                r = subprocess.run(["qs", "-c", "noctalia-shell", "ipc", "call",
-                                    "wallpaper", "get", scr],
-                                   capture_output=True, text=True)
-                return r.stdout or ""
-            objetivo = tmp or png
-            aplicado = False
-            for _ in range(30):
-                time.sleep(0.5)
-                scrs = _pantallas()
-                for scr in scrs:
-                    _set(objetivo, scr)
-                if objetivo in _get(scrs[0]):
-                    aplicado = True; break
-            if aplicado and tmp:
-                # segundo pase: deja el estado en la ruta permanente del repo
-                for _ in range(10):
-                    time.sleep(0.5)
-                    for scr in scrs:
-                        _set(png, scr)
-                    if png in _get(scrs[0]):
-                        break
-            if aplicado:
-                did(f"Wallpaper -> {os.path.basename(png)} (repintado + estado en repo)")
-            else:
-                warn("Noctalia no confirmo el wallpaper en 15s; aplicalo desde el selector.")
-
 
 # ── 7) Teclado RGB (ITE5570 LampArray): color = primary del tema ──
 def patch_kbd(tema, ts):
@@ -597,7 +529,6 @@ def reload_noctalia_live(png=None):
         did(f"Wallpaper -> {os.path.basename(png)} (en vivo)")
     else:
         warn("Noctalia no confirmo el wallpaper; reaplica o usa el selector.")
-
 
 def aplicar(tema):
     canon = _resolver_tema(tema)
