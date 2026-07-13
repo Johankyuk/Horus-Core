@@ -9,7 +9,7 @@ _en_ac(){ for p in /sys/class/power_supply/*/online; do
     [ -r "$p" ] && [ "$(cat "$p" 2>/dev/null)" = "1" ] && return 0; done; return 1; }
 while true; do
   prof=$(cat /sys/firmware/acpi/platform_profile 2>/dev/null)
-  if [ "$prof" = "performance" ] && _en_ac; then nuevo="dgpu"; else nuevo="igpu"; fi
+  if _en_ac; then nuevo="dgpu"; else nuevo="igpu"; fi
   if [ "$nuevo" != "$estado" ]; then
     if [ "$nuevo" = "dgpu" ]; then
       systemctl --user set-environment __NV_PRIME_RENDER_OFFLOAD=1 \

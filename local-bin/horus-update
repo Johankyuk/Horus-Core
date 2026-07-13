@@ -7,7 +7,7 @@ if command -v cachyos-rate-mirrors >/dev/null; then
     sudo cachyos-rate-mirrors
 fi
 echo "→ Sistema (repos + AUR)..."
-paru -Syu
+paru -Syu --noconfirm
 if command -v flatpak >/dev/null; then
     echo "→ Flatpaks..."
     flatpak update -y
