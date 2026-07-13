@@ -400,7 +400,7 @@ declare -A SEC_DESC=(
     [flatpak]="Flatpak + remoto Flathub"
     [zen]="Navegador Zen: tema Horus, prefs y extensiones"
     [rendimiento]="Rendimiento gráfico (supergfxctl, nvtop, horus-power)"
-    [gaming]="Gaming (juegos web nostálgicos) — reservado"
+    [gaming]="Gaming — Minecraft Bedrock (mcpelauncher) + shader Newb"
 )
 # Qué necesita cada sección. Con --solo, si NINGUNA de las elegidas requiere
 # sudo no se pide password ni keep-alive (p.ej. --solo=proyeccion corre sin
@@ -411,7 +411,7 @@ declare -A SEC_SUDO=( [sistema]=1 [snapshot]=1 [update]=1 [repos]=1 [aur]=1 [opc
     [teclado]=1 [recursos]=$DO_BATERIA [proyeccion]=0 [sesion]=1 [flatpak]=1 [zen]=1 [rendimiento]=1 [gaming]=0 )
 declare -A SEC_RED=(  [sistema]=1 [snapshot]=0 [update]=1 [repos]=1 [aur]=1 [opcionales]=1
     [configs]=0 [generables]=0 [launcher]=0 [gtk]=0 [cursor]=0 [sddm]=0 [branding]=0
-    [steam]=0 [teclado]=0 [recursos]=0 [proyeccion]=0 [sesion]=0 [flatpak]=1 [zen]=0 [rendimiento]=1 [gaming]=0 )
+    [steam]=0 [teclado]=0 [recursos]=0 [proyeccion]=0 [sesion]=0 [flatpak]=1 [zen]=0 [rendimiento]=1 [gaming]=1 )
 
 # Mapeo sección → paquete (taxonomía del asistente). El núcleo SIEMPRE corre.
 # El asistente decide qué paquetes encender; la SELECCION se arma filtrando
@@ -2245,9 +2245,37 @@ sec_rendimiento() {
     fi
 }
 
-# SECCIÓN «gaming» — JUEGOS WEB (reservada, aún pendiente)
+# SECCIÓN «gaming» — MINECRAFT BEDROCK (mcpelauncher) + shader Newb opcional
 sec_gaming() {
-    skip "Juegos web (PvZ Gardenless, AB Epic, AllStars): aún pendientes; sección reservada."
+    local MCPE="io.mrarm.mcpelauncher"
+
+    # 1) mcpelauncher por flathub (user) — mismo idiom que el resto de flatpaks
+    if flatpak info --user "$MCPE" &>/dev/null; then
+        skip "mcpelauncher ya instalado ($MCPE)."
+    else
+        flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo 2>/dev/null
+        if flatpak install --user --noninteractive flathub "$MCPE"; then
+            did "mcpelauncher instalado ($MCPE)."
+        else
+            fallo "No se pudo instalar mcpelauncher ($MCPE)."
+            return
+        fi
+    fi
+
+    # 2) Shader Newb (OPCIONAL, por detección). Necesita: (a) mcpelauncher abierto
+    #    una vez (crea su data dir) y (b) un newb-classic*.mcpack en ~/Descargas o
+    #    ~/Documentos (NO va al repo: licencia). Sin (a) o (b): launcher pelón + nota.
+    local mcpe_data="$HOME/.var/app/$MCPE/data/mcpelauncher"
+    local mcpack; mcpack=$(ls -1t "$HOME/Descargas"/newb-classic*.mcpack "$HOME/Documentos"/newb-classic*.mcpack 2>/dev/null | head -1)
+    if [ ! -d "$mcpe_data" ]; then
+        nota "Shader Newb pendiente: abre mcpelauncher una vez, luego corre  horus-mc-shaders"
+    elif [ -z "$mcpack" ]; then
+        nota "Shader Newb pendiente: deja un newb-classic*.mcpack en ~/Descargas y corre  horus-mc-shaders"
+    elif [ -x "$HOME/.local/bin/horus-mc-shaders" ] && "$HOME/.local/bin/horus-mc-shaders" "$mcpack"; then
+        did "Shader Newb aplicado en mcpelauncher (pack: $(basename "$mcpack"))."
+    else
+        nota "Shader Newb no aplicado; corre manualmente:  horus-mc-shaders"
+    fi
 }
 
 _idx=1

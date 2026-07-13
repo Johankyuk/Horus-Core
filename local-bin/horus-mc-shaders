@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# horus-mc-shaders — Newb shaders en Minecraft Bedrock (mcpelauncher Flatpak).
+# Instala el loader shadersmod (GameParrot, libre) y aplica un newb-classic*.mcpack
+# si lo encuentra. El .mcpack NO se versiona (licencia): déjalo en ~/Descargas o
+# ~/Documentos, o pásalo como arg. Probado: MC 1.26.31.1 + shadersmod v1.1 +
+# Newb Classic 16.54. Idempotente.
+# Uso: horus-mc-shaders [ruta.mcpack] [subpack]
+#   subpack: realistic_clouds|rounded_clouds|box_clouds|no_fog|no_wave|no_wave_no_fog|chunk_anim
+# Si un MC futuro rompe el render, actualiza SM_URL desde:
+#   https://github.com/GameParrot/mcpelauncher-shadersmod/releases
+#   compatibilidad: https://faizul726.github.io/blog/
+set -euo pipefail
+
+SM_URL="https://github.com/GameParrot/mcpelauncher-shadersmod/releases/download/v1.1/shadersmod-android-x86_64.zip"
+DATA="$HOME/.var/app/io.mrarm.mcpelauncher/data/mcpelauncher"
+MODS="$DATA/mods"; SHADERS="$DATA/shaders"; RP="$DATA/games/com.mojang/resource_packs"
+MCPACK="${1:-$(ls -1t "$HOME/Descargas"/newb-classic*.mcpack "$HOME/Documentos"/newb-classic*.mcpack 2>/dev/null | head -1)}"
+SUBPACK="${2:-}"
+
+command -v unzip >/dev/null || { echo "ERROR: instala unzip (sudo pacman -S unzip)"; exit 1; }
+command -v curl  >/dev/null || { echo "ERROR: falta curl"; exit 1; }
+[ -d "$DATA" ] || { echo "ERROR: abre mcpelauncher una vez antes (no existe $DATA)."; exit 1; }
+[ -n "$MCPACK" ] && [ -f "$MCPACK" ] || { echo "ERROR: sin .mcpack. Pásalo como arg o ponlo en ~/Descargas o ~/Documentos."; exit 1; }
+
+DEST="$RP/$(basename "$MCPACK" .mcpack)"
+TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
+echo ">> pack: $MCPACK"
+
+# 1. loader: shadersmod dentro, materialbinloader fuera
+mkdir -p "$MODS"
+[ -f "$MODS/libmaterialbinloader.so" ] && mv "$MODS/libmaterialbinloader.so" "$MODS/libmaterialbinloader.so.disabled"
+if ! ls "$MODS"/*shadersmod*.so >/dev/null 2>&1; then
+  curl -fL -o "$TMP/sm.zip" "$SM_URL"
+  unzip -oq "$TMP/sm.zip" -d "$TMP/sm"
+  SO=$(find "$TMP/sm" -name "*.so" | head -1)
+  [ -n "$SO" ] || { echo "ERROR: sin .so en shadersmod"; exit 1; }
+  cp -f "$SO" "$MODS/$(basename "$SO")"
+fi
+echo ">> loader shadersmod listo"
+
+# 2. resource pack extraído en resource_packs/
+if [ ! -f "$DEST/manifest.json" ]; then
+  [ -e "$DEST" ] && mv "$DEST" "$DEST.bak.$(date +%Y%m%d-%H%M%S)"
+  mkdir -p "$DEST"; unzip -oq "$MCPACK" -d "$DEST"
+  [ -f "$DEST/manifest.json" ] || { inner=$(find "$DEST" -maxdepth 3 -name manifest.json | head -1); [ -n "$inner" ] && { d=$(dirname "$inner"); mv "$d"/* "$DEST"/; }; }
+fi
+echo ">> pack extraído"
+
+# 3. material.bin -> shaders/ (limpia antes para permitir cambio de subpack)
+mkdir -p "$SHADERS"; rm -f "$SHADERS"/*.material.bin
+BASE="$DEST/renderer/materials"
+[ -d "$BASE" ] || { echo "ERROR: pack sin renderer/materials base"; exit 1; }
+cp -f "$BASE"/*.material.bin "$SHADERS"/
+if [ -n "$SUBPACK" ]; then
+  SUB="$DEST/subpacks/$SUBPACK/renderer/materials"
+  [ -d "$SUB" ] || { echo "ERROR: subpack '$SUBPACK' inexistente. Disponibles:"; ls "$DEST/subpacks" 2>/dev/null; exit 1; }
+  cp -f "$SUB"/*.material.bin "$SHADERS"/; echo ">> subpack '$SUBPACK' aplicado"
+fi
+echo ">> $(ls -1 "$SHADERS"/*.material.bin | wc -l) material.bin en shaders/"
+echo "✓ terminado — abre MC, activa el pack en Recursos globales, Gráficos Sofisticado"
