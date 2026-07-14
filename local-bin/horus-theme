@@ -391,6 +391,17 @@ def gen_mangohud(tema, ts):
     _escribe_si_cambia(dst, out, f"MangoHud -> {tema}", ts)
     # MangoHud relee el .conf en caliente: juegos abiertos se repintan solos.
 
+# ── Heroic: tema CSS sigue la paleta (requiere reiniciar Heroic) ──
+def gen_heroic(tema, ts):
+    src = os.path.join(REPO_CFG, "heroic", "horus.css")   # fuente Morada
+    dst = os.path.join(CFG, "heroic", "themes", "horus.css")
+    if not os.path.isfile(src):
+        warn("horus.css de Heroic (repo) no encontrado; se omite."); return
+    out = _sub_hex(open(src, encoding="utf-8").read(),
+                   lambda h: h not in ANSI_FIJOS, tema)
+    _escribe_si_cambia(dst, out, f"Heroic -> {tema}", ts)
+    # Heroic NO relee CSS en caliente: si esta abierto, reiniciarlo.
+
 # ── fastfetch: logo/keys/title siguen el tema (colores 38;2;R;G;B) ──
 def patch_fastfetch(tema, ts):
     # 1) Logo: se copia del repo a ~/.config/fastfetch/logo.txt (texto plano con
@@ -558,6 +569,7 @@ def aplicar(tema):
     recolorear_terminales()    # ← pinta las foot abiertas con el tema entrante
     patch_fastfetch(tema, ts)  # ← logo/keys/title de fastfetch siguen el tema
     gen_mangohud(tema, ts)     # ← overlay MangoHud con la paleta del tema
+    gen_heroic(tema, ts)       # ← tema CSS de Heroic (aplica al reiniciarlo)
     patch_cursor(tema)         # cursor Bibata del tema (build en 2o plano si falta)
     gen_folders(tema, ts)      # ← carpetas Papirus recoloreadas (overlay Horus-Folders)
     gen_qt6ct(tema, ts)        # ← paleta Qt (PCManFM-Qt y demas apps Qt)

@@ -1,0 +1,25 @@
+/* Heroic — Horus (fuente Morada; horus-theme rota los hex al aplicar tema) */
+:root {
+  --accent: #8b45f7;
+  --accent-overlay: #c44fe6;
+  --navbar-background: #18092b;
+  --body-background: #18092b;
+  --background: #18092b;
+  --background-darker: #100621;
+  --background-lighter: #2a1145;
+  --gradient-body-background: linear-gradient(180deg, #100621 0%, #18092b 100%);
+  --current-background: #2a1145;
+  --modal-background: #18092b;
+  --modal-border: #8b45f7;
+  --osk-background: #18092b;
+  --navbar-active: #c44fe6;
+  --navbar-active-background: #2a1145;
+  --navbar-accent: #8b45f7;
+  --text-default: #f5f5f5;
+  --text-secondary: #c4b3e0;
+  --icons-background: #2a1145;
+  --anticheat-denied: #f5567a;
+  --download-button: #8b45f7;
+  --primary-button: #8b45f7;
+  --secondary-button: #2a1145;
+}
