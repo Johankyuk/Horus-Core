@@ -380,6 +380,17 @@ def patch_sddm(tema, ts):
     else:
         warn("No se pudo escribir el theme.conf de SDDM.")
 
+# ── MangoHud: overlay de juego sigue la paleta del tema ──
+def gen_mangohud(tema, ts):
+    src = os.path.join(REPO_CFG, "MangoHud", "MangoHud.conf")  # fuente Morada
+    dst = os.path.join(CFG, "MangoHud", "MangoHud.conf")
+    if not os.path.isfile(src):
+        warn("MangoHud.conf (repo) no encontrado; se omite."); return
+    out = _sub_hex(open(src, encoding="utf-8").read(),
+                   lambda h: h not in ANSI_FIJOS, tema)
+    _escribe_si_cambia(dst, out, f"MangoHud -> {tema}", ts)
+    # MangoHud relee el .conf en caliente: juegos abiertos se repintan solos.
+
 # ── fastfetch: logo/keys/title siguen el tema (colores 38;2;R;G;B) ──
 def patch_fastfetch(tema, ts):
     # 1) Logo: se copia del repo a ~/.config/fastfetch/logo.txt (texto plano con
@@ -546,6 +557,7 @@ def aplicar(tema):
     gen_foot(tema, ts)         # ← foot.ini del tema (ANSI semánticos fijos)
     recolorear_terminales()    # ← pinta las foot abiertas con el tema entrante
     patch_fastfetch(tema, ts)  # ← logo/keys/title de fastfetch siguen el tema
+    gen_mangohud(tema, ts)     # ← overlay MangoHud con la paleta del tema
     patch_cursor(tema)         # cursor Bibata del tema (build en 2o plano si falta)
     gen_folders(tema, ts)      # ← carpetas Papirus recoloreadas (overlay Horus-Folders)
     gen_qt6ct(tema, ts)        # ← paleta Qt (PCManFM-Qt y demas apps Qt)
