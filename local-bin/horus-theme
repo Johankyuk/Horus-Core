@@ -569,6 +569,7 @@ def aplicar(tema):
     patch_fastfetch(tema, ts)  # ← logo/keys/title de fastfetch siguen el tema
     gen_mangohud(tema, ts)     # ← overlay MangoHud con la paleta del tema
     gen_heroic(tema, ts)       # ← tema CSS de Heroic (aplica al reiniciarlo)
+    patch_sddm(tema, ts)       # ← login SDDM via horus-sddm-apply (sudoers NOPASSWD)
     patch_cursor(tema)         # cursor Bibata del tema (build en 2o plano si falta)
     gen_folders(tema, ts)      # ← carpetas Papirus recoloreadas (overlay Horus-Folders)
     gen_qt6ct(tema, ts)        # ← paleta Qt (PCManFM-Qt y demas apps Qt)
