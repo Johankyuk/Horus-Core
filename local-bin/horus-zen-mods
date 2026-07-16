@@ -5,12 +5,15 @@
 #   Uso: horus-zen-mods [ruta-del-export.json]
 import os, sys, json, glob, configparser
 
-ZEN = os.path.expanduser("~/.zen")
+ZEN = next((d for d in (os.path.expanduser("~/.zen"),
+                        os.path.expanduser("~/.config/zen"))
+            if os.path.isdir(d)), os.path.expanduser("~/.zen"))
 here = os.path.dirname(os.path.abspath(__file__))
 EXPORT = sys.argv[1] if len(sys.argv) > 1 else None
 if not EXPORT:  # buscar el export junto al script o en el repo
     for c in (os.path.join(here, "zen-mods-export.json"),
-              os.path.join(here, "..", "config", "zen", "zen-mods-export.json")):
+              os.path.join(here, "..", "config", "zen", "zen-mods-export.json"),
+              os.path.expanduser("~/Horus-Project/config/zen/zen-mods-export.json")):
         if os.path.isfile(c): EXPORT = c; break
 if not EXPORT or not os.path.isfile(EXPORT):
     sys.exit("[x] No encuentro el export de Zen mods.")

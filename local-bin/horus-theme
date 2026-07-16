@@ -406,6 +406,23 @@ def gen_mangohud(tema, ts):
     _escribe_si_cambia(dst, out, f"MangoHud -> {tema}", ts)
     # MangoHud relee el .conf en caliente: juegos abiertos se repintan solos.
 
+# ── Dark Reader: JSON del tema para importar en Zen (paso manual) ──
+def gen_darkreader(tema, ts):
+    src = os.path.join(REPO_CFG, "zen", "darkreader-horus.json")   # fuente Morada
+    dst = os.path.join(HOME, ".config", "horus", "darkreader.json")
+    if not os.path.isfile(src):
+        warn("darkreader-horus.json (repo) no encontrado; se omite."); return
+    LUZ = {"#dcdad7", "#181818"}   # paleta del modo claro: no rota
+    out = _sub_hex(open(src, encoding="utf-8").read(),
+                   lambda h: h.lower() not in LUZ, tema)
+    if os.path.isfile(dst) and open(dst, encoding="utf-8").read() == out:
+        skip(f"Dark Reader JSON ya en '{tema}'."); return
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+    _backup(dst, ts)
+    open(dst, "w", encoding="utf-8").write(out)
+    did(f"Dark Reader -> {tema} (importa ~/.config/horus/darkreader.json en la extension)")
+    _CAMBIOS[0] = True
+
 # ── Heroic: tema CSS sigue la paleta (requiere reiniciar Heroic) ──
 def gen_heroic(tema, ts):
     src = os.path.join(REPO_CFG, "heroic", "horus.css")   # fuente Morada
@@ -586,6 +603,7 @@ def aplicar(tema):
     gen_mangohud(tema, ts)     # ← overlay MangoHud con la paleta del tema
     gen_heroic(tema, ts)       # ← tema CSS de Heroic (aplica al reiniciarlo)
     patch_sddm(tema, ts)       # ← login SDDM via horus-sddm-apply (sudoers NOPASSWD)
+    gen_darkreader(tema, ts)   # ← JSON para importar en Dark Reader (manual)
     patch_cursor(tema)         # cursor Bibata del tema (build en 2o plano si falta)
     gen_folders(tema, ts)      # ← carpetas Papirus recoloreadas (overlay Horus-Folders)
     gen_qt6ct(tema, ts)        # ← paleta Qt (PCManFM-Qt y demas apps Qt)
