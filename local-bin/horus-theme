@@ -232,6 +232,17 @@ def _set_ini_key(path, seccion, clave, valor):
     except Exception:
         return False
 
+# Nombres estandar que GIO/Qt piden PRIMERO; si faltan, el lookup cae al tema
+# padre (Papirus violet) y el color miente. Se generan como copias del arte rotado.
+ALIAS_FOLDERS = {
+    "inode-directory": "folder",
+    "gtk-directory":   "folder",
+    "stock_folder":    "folder",
+    "user-desktop":    "folder-desktop",
+    "desktop":         "folder-desktop",
+    "folder-publicshare": "folder-public",
+    "folder-home":     "user-home",
+}
 def gen_folders(tema, ts):
     src_root = _papirus_dir()
     if not src_root:
@@ -247,19 +258,32 @@ def gen_folders(tema, ts):
     sizes, escritos, total = [], 0, 0
     for size_dir in sorted(os.listdir(src_root)):
         places = os.path.join(src_root, size_dir, "places")
-        svgs = sorted(glob.glob(os.path.join(places, "folder-violet*.svg")))
+        svgs = sorted(glob.glob(os.path.join(places, "folder-violet*.svg"))
+                      + glob.glob(os.path.join(places, "user-violet*.svg")))
         if not svgs:
             continue
         out_dir = os.path.join(FOLDERS_DIR, size_dir, "places")
         os.makedirs(out_dir, exist_ok=True)
         sizes.append(size_dir)
         for svg in svgs:
-            nombre = "folder" + os.path.basename(svg)[len("folder-violet"):]
+            base = os.path.basename(svg)
+            if base.startswith("folder-violet"):
+                nombre = "folder" + base[len("folder-violet"):]
+            else:
+                nombre = "user" + base[len("user-violet"):]
             txt = open(os.path.realpath(svg), encoding="utf-8").read()
             out = rx.sub(lambda m: rot("#" + m.group(1)), txt)
             dstf = os.path.join(out_dir, nombre); total += 1
             if not (os.path.isfile(dstf) and open(dstf, encoding="utf-8").read() == out):
                 open(dstf, "w", encoding="utf-8").write(out); escritos += 1
+        for alias, base in ALIAS_FOLDERS.items():
+            srcf = os.path.join(out_dir, base + ".svg")
+            dstf = os.path.join(out_dir, alias + ".svg")
+            if not os.path.isfile(srcf):
+                continue
+            txt = open(srcf, encoding="utf-8").read(); total += 1
+            if not (os.path.isfile(dstf) and open(dstf, encoding="utf-8").read() == txt):
+                open(dstf, "w", encoding="utf-8").write(txt); escritos += 1
     if not sizes:
         warn("Papirus sin familia violet (places); carpetas se omiten."); return
     idx = ("[Icon Theme]\nName=Horus-Folders\n"
@@ -408,7 +432,7 @@ def gen_mangohud(tema, ts):
 
 # ── Dark Reader: JSON del tema para importar en Zen (paso manual) ──
 def gen_darkreader(tema, ts):
-    src = os.path.join(REPO_CFG, "zen", "darkreader-horus.json")   # fuente Morada
+    src = os.path.join(REPO_CFG, "darkreader", "darkreader.morado.json")   # fuente Morada
     dst = os.path.join(HOME, ".config", "horus", "darkreader.json")
     if not os.path.isfile(src):
         warn("darkreader-horus.json (repo) no encontrado; se omite."); return
