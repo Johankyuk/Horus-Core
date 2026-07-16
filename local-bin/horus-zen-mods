@@ -26,17 +26,17 @@ prof = None
 ini = os.path.join(ZEN, "profiles.ini")
 if os.path.isfile(ini):
     cp = configparser.ConfigParser(); cp.read(ini)
-    # perfil marcado Default=1
+    # [Install...] es la autoridad en Firefox moderno; Default=1 es legacy.
     for s in cp.sections():
-        if cp.has_option(s, "Path") and cp.get(s, "Default", fallback="0") == "1":
-            p = cp.get(s, "Path")
-            prof = os.path.join(ZEN, p) if cp.get(s, "IsRelative", fallback="1") == "1" else p
-            break
-    # o el Default del bloque [Install...]
+        if s.startswith("Install") and cp.has_option(s, "Default"):
+            prof = os.path.join(ZEN, cp.get(s, "Default")); break
+    # fallback legacy: perfil marcado Default=1
     if not prof:
         for s in cp.sections():
-            if s.startswith("Install") and cp.has_option(s, "Default"):
-                prof = os.path.join(ZEN, cp.get(s, "Default")); break
+            if cp.has_option(s, "Path") and cp.get(s, "Default", fallback="0") == "1":
+                p = cp.get(s, "Path")
+                prof = os.path.join(ZEN, p) if cp.get(s, "IsRelative", fallback="1") == "1" else p
+                break
 if not prof:  # fallback: la carpeta con prefs.js más reciente
     cands = glob.glob(os.path.join(ZEN, "*", "prefs.js"))
     if cands: prof = os.path.dirname(max(cands, key=os.path.getmtime))

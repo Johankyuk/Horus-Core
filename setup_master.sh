@@ -1892,6 +1892,12 @@ fi
 #     instala/cambia la regla, se marca NEED_REBOOT.
 # El grupo 'input' + MODE=0660 es el respaldo por si uaccess fallara.
 sec_teclado() {
+    # Color del tema en el teclado ANTES del login (servicio de sistema).
+    # @HOME@ se resuelve al usuario que instala; ver nota multiusuario en el wrapper.
+    sed "s|@HOME@|$HOME|" "$SCRIPT_DIR/system/horus-kbd-boot.service" | sudo tee /etc/systemd/system/horus-kbd-boot.service >/dev/null
+    sudo systemctl daemon-reload
+    sudo systemctl enable horus-kbd-boot.service
+    did "horus-kbd-boot.service instalado (teclado con tema en el login)."
     local src="$SCRIPT_DIR/udev/60-horus-kbd.rules"
     local dst="/etc/udev/rules.d/60-horus-kbd.rules"
 

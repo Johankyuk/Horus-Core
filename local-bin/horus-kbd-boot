@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# horus-kbd-boot — pinta el teclado con el color del tema ANTES del login.
+# Corre como servicio de sistema (root). Espera el hidraw del ITE5570 (mismo
+# patron que horus-kbd-start) y aplica el estatico una sola vez; al iniciar
+# sesion, horus-kbd-fx (demonio de usuario) toma el control.
+# NOTA multiusuario: lee el kbd-color del usuario fijado en HORUS_USER_HOME
+# (resuelto por el setup). En sistemas de un usuario — el caso normal — es
+# exactamente el color del tema activo.
+set -uo pipefail
+HOME_USR="${HORUS_USER_HOME:-}"
+[[ -n $HOME_USR ]] || { echo "horus-kbd-boot: HORUS_USER_HOME no definido"; exit 1; }
+COLOR_FILE="$HOME_USR/.config/horus/kbd-color"
+
+# Espera hidraw del ITE5570 (0B05:19B6), max 30s
+kbd=""
+for _ in $(seq 1 15); do
+  for p in /sys/class/hidraw/hidraw*; do
+    grep -q "00000B05:000019B6" "$p/device/uevent" 2>/dev/null && { kbd=1; break 2; }
+  done
+  sleep 2
+done
+[[ -n $kbd ]] || { echo "horus-kbd-boot: ITE5570 no aparecio en 30s"; exit 1; }
+
+COLOR="8b45f7"   # fallback: Morado de marca
+[[ -f $COLOR_FILE ]] && COLOR=$(tr -d '#[:space:]' < "$COLOR_FILE")
+exec /usr/local/bin/horus-kbd-color "$COLOR"
