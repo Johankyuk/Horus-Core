@@ -6,7 +6,7 @@ input {
         xkb {
             //If you want to overwrite your keyboard layout,
             // uncomment the line below and change the layout accordingly.
-            //layout "us" // Use the American keyboard layout
+            layout "latam"
         }
         numlock // Enable numlock on startup
     }
