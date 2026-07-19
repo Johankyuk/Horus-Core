@@ -1,9 +1,0 @@
-#!/bin/bash
-# horus-solo: corre SOLO las secciones indicadas del setup
-# Atajo de: horus-start --solo=SECCIONES
-#   horus-solo lista            -> muestra la tabla de secciones disponibles
-#   horus-solo cursor           -> corre solo la sección cursor
-#   horus-solo cursor sddm      -> varias por espacio…
-#   horus-solo 7,9              -> …o por número, separadas por coma
-# Une los argumentos con coma, así aceptas espacios o comas indistintamente.
-exec horus-start --solo="$(IFS=,; echo "$*")"

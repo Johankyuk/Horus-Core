@@ -1,2 +1,0 @@
-# RGB del teclado ITE5570 LampArray sin root
-KERNEL=="hidraw*", SUBSYSTEM=="hidraw", KERNELS=="*0B05:19B6*", MODE="0660", GROUP="input", TAG+="uaccess"

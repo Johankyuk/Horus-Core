@@ -1,4 +1,0 @@
-#!/bin/bash
-# horus-dry: simula la corrida completa; reporta que haria sin tocar nada
-# Atajo de: horus-start --dry-run
-exec horus-start --dry-run "$@"

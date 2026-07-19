@@ -1,4 +1,0 @@
-#!/bin/bash
-# horus-check: healthcheck de Horus (valida que todo quedo bien)
-# Atajo de: horus-start --check
-exec horus-start --check "$@"

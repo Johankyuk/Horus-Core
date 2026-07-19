@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-# Reaplica al teclado el color del tema activo (autostart al boot).
-# El firmware del ITE5570 olvida el color en cada arranque.
-color="$(cat ~/.config/horus/kbd-color 2>/dev/null || echo 8b45f7)"
-for i in 1 2 3; do horus-kbd-color "$color" && exit 0; sleep 1; done

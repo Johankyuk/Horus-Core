@@ -1,4 +1,0 @@
-#!/bin/bash
-# horus-sync: vuelca tu ~/.config actual de vuelta al repo, para commitear
-# Atajo de: horus-start --capturar
-exec horus-start --capturar "$@"

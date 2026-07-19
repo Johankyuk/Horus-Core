@@ -1,6 +1,0 @@
-#!/bin/bash
-# horus-clean: borra restos de versiones viejas del setup y sale
-# Atajo de: horus-start --limpiar
-# (~/Imágenes/PFP y Wallpapers de instalaciones viejas, log viejo del repo.)
-# Pide confirmación; no toca el sistema.
-exec horus-start --limpiar "$@"
