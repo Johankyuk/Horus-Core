@@ -1,201 +1,67 @@
+<div align="center">
+
 # Horus Project
 
-> **A better Noctalia — for laptops.**
+**Content repository for the Horus desktop — consumed by [horus-nix](https://github.com/Johankyuk/horus-nix)**
 
-**English** | [Español](#espanol)
+[English](#english) · [Español](#espanol)
 
-Horus is a one-command post-install for **CachyOS**. It takes **Noctalia** — a Wayland desktop shell — and turns it into a complete, laptop-ready daily driver: a unified purple theme, hybrid-GPU management, battery care, keyboard RGB, power profiles, and clean boot branding. The parts a bare Noctalia install leaves you to wire up yourself, Horus wires up for you.
+</div>
 
-It's a personal setup, kept public as a reference. It isn't a distro and doesn't pretend to be one — no fake `os-release`, no impersonation. Just CachyOS, configured the way I run it.
+---
 
-Built on **Noctalia v4.7.7** — and it stays there. Horus installs a vendored, frozen copy from its own release instead of whatever the repos serve that day, so a reinstall reproduces the exact environment that was tested. A port to **Noctalia v5** is planned once v5 leaves beta.
+<a name="english"></a>
+## English
 
-## Install
+### What this is
 
-One command. It installs `git` if missing, clones the repo to `~/Horus-Project`, and runs the installer:
+This repo holds the **content** of the Horus desktop: dotfiles, branding, wallpapers, and themes. It contains no installer and no tooling — the system itself (packages, services, scripts like `horus-theme`) is built declaratively by the [horus-nix](https://github.com/Johankyuk/horus-nix) flake on NixOS.
 
-```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/Johankyuk/Horus-Project/main/bootstrap.sh)
-```
+> Historical note: this repo used to carry a full post-install automation suite for Arch/CachyOS (`setup_master.sh`, `local-bin/`). That era lives in the git history up to `56291e9`. Everything executable now lives in horus-nix.
 
-No prompts. Full install, in Spanish, purple theme. It runs every section and leaves the machine ready. For fine control, `horus-start --solo=<section>` runs individual sections.
+### Structure
 
-## Requirements
-
-- **CachyOS**
-- **UEFI** boot with **systemd-boot**
-- An internet connection
-
-Horus installs Niri and Noctalia for you — you don't need them beforehand. It's built and tested on an ASUS TUF laptop with a hybrid AMD iGPU + NVIDIA dGPU and an ITE5570 RGB keyboard; the GPU, battery, and RGB pieces target that hardware, while everything else is plain CachyOS + Niri + Noctalia.
-
-## What it installs
-
-- **Niri** (scrollable tiling) with **Noctalia** as the shell: bar, dock, control center, and lockscreen.
-- **foot** terminal, **PCManFM-Qt** file manager, **Zen** browser (themed).
-- **SDDM** greeter with a matching theme (sugar-dark-horus).
-- Everyday apps: VLC, imv, OBS, OnlyOffice, VSCodium, Steam (with its Wayland fix), Sober (Roblox).
-- **Power and hybrid-GPU management** for laptops with an NVIDIA dGPU.
-- **Keyboard RGB** with software effects (ASUS TUF / ITE5570).
-- Own branding: black boot with a "Horus (your base)" title and a purple Horus-eye fastfetch. No fake `os-release`.
-- **Minecraft Bedrock** via mcpelauncher, with optional Newb shaders.
-
-## Theme
-
-Everything is **purple** (`#8b45f7`). An OKLCH color engine recolors Noctalia, foot, Niri, the wallpaper, the cursor, and the keyboard RGB in one shot. The install applies purple and that's it — the engine keeps other palettes internally, but there's no selector and none are offered. This is a single-theme setup on purpose.
-
-## Power & GPU
-
-Built for laptops with a hybrid GPU (iGPU + NVIDIA dGPU). `horus-power` unifies profiles, fan curves, and GPU modes:
-
-```bash
-horus-power eco          # quiet, dGPU heavily capped
-horus-power equilibrado  # daily use
-horus-power rendimiento  # full power (AC only)
-horus-power gpu-off      # disable the dGPU, desktop on the iGPU (logs out)
-horus-power gpu-on       # turn it back on
-```
-
-A hook watches the power profile and adjusts only the dGPU's power limit. A per-boot service keeps the battery charge limit (80%).
-
-> **Dual-boot note:** if you boot Windows before Linux, Windows can override the EC charge limit. The hook re-applies it within seconds back in Linux, but there's a brief window where the limit may read differently. That's expected, not a fault.
-
-## Keyboard RGB
-
-The RGB follows the theme color. Effects run in software (the firmware doesn't do them natively). ITE5570 (ASUS TUF) only — other keyboards are out by design; that's what OpenRGB is for.
-Fn + F4   # cycle effects: static, breathing, rainbow, pulse, strobe
-## Commands
-
-The whole interface is `horus-*` shortcuts, available after install:
-
-| Command | What it does |
+| Path | Purpose |
 |---|---|
-| `horus-start` | Install / reconfigure. `--solo=<section>` runs individual sections. |
-| `horus-theme` | Applies the theme (purple). Live applier, no selector. |
-| `horus-power` | Power profiles and GPU modes. |
-| `horus-update` | Updates mirrors + repos/AUR + Flatpaks. |
-| `horus-check` | Setup diagnostics: what's fine and what's missing. |
-| `horus-sync` | Dumps your `~/.config` into the repo (to commit GUI changes). |
+| `config/` | Dotfiles deployed to `~/.config` (Niri, Noctalia, foot, MangoHud, Dark Reader, Heroic, Zen…) |
+| `branding/` | fastfetch config + Horus ASCII logo |
+| `Wallpapers/` | `base.svg` + per-theme generated wallpapers |
+| `sugar-dark-horus/` | SDDM theme (colors governed by the theme engine) |
+| `PFP/`, `preview/`, `proyectar/`, `docs/` | Assets and documentation |
 
-> **Maintenance note:** the `horus-*` commands live copied in `~/.local/bin` (they aren't symlinks to the repo). Editing the repo isn't enough — sync the copy (`horus-sync` or `cp local-bin/* ~/.local/bin/`) before testing.
+### How it's consumed
 
-## Repository layout
-Horus-Project/
-├── bootstrap.sh          # one-command install
-├── setup_master.sh       # master installer (idempotent sections)
-├── config/               # dotfiles → ~/.config (niri, noctalia, foot)
-├── local-bin/            # horus-* shortcuts → ~/.local/bin
-├── branding/             # fastfetch logo/config (the theme rotates them)
-├── sugar-dark-horus/     # SDDM theme
-├── proyectar/            # display-projection utility
-├── system/               # systemd services (power hook)
-├── udev/                 # rules (keyboard RGB)
-├── Wallpapers/  PFP/      # wallpapers and avatar
-└── horus_themes.py       # color engine
-The `archive/wizard-temas-folders` branch keeps the previous state (install wizard, multi-theme selector, Thunar folder recoloring) in case I ever want it back.
+1. **Seed** (`horus-seed`, system service): a pinned snapshot of this repo ships inside the NixOS build so the first boot has Niri/Noctalia/foot config before SDDM — no network, no race.
+2. **Bootstrap** (`horus-bootstrap`, user service): clones/updates this repo to `~/Horus-Project` on login and deploys missing config non-destructively (`cp -rn`).
+3. **Runtime**: tools like `horus-theme` read content (wallpapers, branding, theme sources) from the clone; the color engine itself ships with the tools in horus-nix.
 
-## Credits
-
-Built and maintained by me — a Biomedical Engineering student who plays with Python in his spare time. Thanks for reading.
+`Wallpapers/base.svg` is the marker the tools use to locate this repo (`HORUS_DIR` overrides).
 
 ---
 
 <a name="espanol"></a>
+## Español
 
-# Horus Project — Español
+### Qué es esto
 
-> **Un mejor Noctalia — para laptops.**
+Este repo contiene el **contenido** del escritorio Horus: dotfiles, branding, wallpapers y temas. No hay instalador ni tooling — el sistema (paquetes, servicios, scripts como `horus-theme`) lo construye declarativamente el flake [horus-nix](https://github.com/Johankyuk/horus-nix) en NixOS.
 
-[English](#horus-project) | **Español**
+> Nota histórica: este repo cargó una suite completa de automatización post-install para Arch/CachyOS (`setup_master.sh`, `local-bin/`). Esa era vive en el historial git hasta `56291e9`. Todo lo ejecutable vive ahora en horus-nix.
 
-Horus es un post-install de un comando para **CachyOS**. Toma **Noctalia** —un shell de escritorio para Wayland— y lo convierte en un daily driver completo y listo para portátil: tema morado unificado, gestión de GPU híbrida, cuidado de batería, RGB de teclado, perfiles de energía y branding de arranque limpio. Todo lo que un Noctalia pelón te deja cablear a mano, Horus lo cablea por vos.
+### Estructura
 
-Es un setup personal, público como referencia. No es una distro ni pretende serlo —sin `os-release` falso, sin disfraces. Solo CachyOS, configurado como lo uso yo.
-
-Construido sobre **Noctalia v4.7.7** —y ahí se queda. Horus instala una copia congelada y vendorizada desde su propio release en vez de lo que los repos sirvan ese día, así que una reinstalación reproduce el entorno exacto que se probó. El port a **Noctalia v5** está planeado para cuando v5 salga de beta.
-
-## Instalación
-
-Un solo comando. Instala `git` si falta, clona el repo en `~/Horus-Project` y lanza el instalador:
-
-```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/Johankyuk/Horus-Project/main/bootstrap.sh)
-```
-
-Sin preguntas. Instalación completa, en español, con tema morado. Corre todas las secciones y deja el equipo listo. Si querés control fino, `horus-start --solo=<seccion>` corre secciones sueltas.
-
-## Requisitos
-
-- **CachyOS**
-- Arranque **UEFI con systemd-boot**
-- Conexión a internet
-
-Horus instala Niri y Noctalia por vos —no hacen falta de antemano. Está construido y probado en una laptop ASUS TUF con iGPU AMD + dGPU NVIDIA híbrida y teclado RGB ITE5570; las piezas de GPU, batería y RGB apuntan a ese hardware, y el resto es CachyOS + Niri + Noctalia genérico.
-
-## Qué instala
-
-- **Niri** (tiling scrollable) con **Noctalia** como shell: barra, dock, centro de control y lockscreen.
-- Terminal **foot**, gestor de archivos **PCManFM-Qt**, navegador **Zen** (con tema).
-- Greeter **SDDM** con tema propio (sugar-dark-horus).
-- Apps de diario: VLC, imv, OBS, OnlyOffice, VSCodium, Steam (con su fix de Wayland), Sober (Roblox).
-- **Gestión de energía y GPU híbrida** para portátiles con dGPU NVIDIA.
-- **RGB del teclado** con efectos por software (ASUS TUF / ITE5570).
-- Branding propio: boot negro con título "Horus (tu base)" y fastfetch con el ojo de Horus en morado. Sin `os-release` falso.
-- **Minecraft Bedrock** vía mcpelauncher, con shaders Newb opcionales.
-
-## Tema
-
-Todo va en **morado** (`#8b45f7`). Un motor de color OKLCH recolorea Noctalia, foot, Niri, wallpaper, cursor y RGB del teclado de golpe. En la instalación se aplica morado y punto —el motor conserva otras paletas internamente, pero no hay selector ni se ofrecen. Es un setup de un solo tema a propósito.
-
-## Energía y GPU
-
-Pensado para portátiles con GPU híbrida (iGPU + dGPU NVIDIA). `horus-power` unifica perfiles, curvas de ventilador y modos de GPU:
-
-```bash
-horus-power eco          # silencioso, dGPU muy capada
-horus-power equilibrado  # uso diario
-horus-power rendimiento  # a tope (solo con cargador)
-horus-power gpu-off      # apaga la dGPU, escritorio a iGPU (cierra sesión)
-horus-power gpu-on       # la vuelve a encender
-```
-
-Un hook vigila el perfil de energía y ajusta solo el límite de potencia de la dGPU. El límite de carga de batería (80%) lo mantiene un servicio en cada arranque.
-
-> **Nota dual boot:** si arrancás desde Windows antes que Linux, Windows puede pisar el tope de carga en el EC. El hook lo recorrige en segundos al volver a Linux, pero hay una ventana breve donde el límite puede verse en otro valor. Es esperado, no un fallo.
-
-## Teclado RGB
-
-El RGB sigue el color del tema. Los efectos van por software (el firmware no los soporta nativo). Solo para el ITE5570 de ASUS TUF; otros teclados quedan fuera por diseño —para eso está OpenRGB.
-Fn + F4   # cicla efectos: estático, respiración, arcoíris, pulso, strobe
-## Comandos
-
-Toda la interfaz son atajos `horus-*` disponibles tras la instalación:
-
-| Comando | Qué hace |
+| Ruta | Propósito |
 |---|---|
-| `horus-start` | Instalación / reconfiguración. `--solo=<seccion>` corre secciones sueltas. |
-| `horus-theme` | Aplica el tema (morado). Aplicador vivo, sin selector. |
-| `horus-power` | Perfiles de energía y modos de GPU. |
-| `horus-update` | Actualiza mirrors + repos/AUR + Flatpaks. |
-| `horus-check` | Diagnóstico del setup: qué está bien y qué falta. |
-| `horus-sync` | Vuelca tu `~/.config` al repo (para commitear cambios de GUI). |
+| `config/` | Dotfiles desplegados a `~/.config` (Niri, Noctalia, foot, MangoHud, Dark Reader, Heroic, Zen…) |
+| `branding/` | Config de fastfetch + logo ASCII de Horus |
+| `Wallpapers/` | `base.svg` + wallpapers generados por tema |
+| `sugar-dark-horus/` | Tema de SDDM (colores gobernados por el motor de temas) |
+| `PFP/`, `preview/`, `proyectar/`, `docs/` | Assets y documentación |
 
-> **Nota de mantenimiento:** los comandos `horus-*` viven copiados en `~/.local/bin` (no son symlinks al repo). Editar el repo no basta: hay que sincronizar la copia (`horus-sync` o `cp local-bin/* ~/.local/bin/`) antes de probar.
+### Cómo se consume
 
-## Estructura del repositorio
-Horus-Project/
-├── bootstrap.sh          # instalación de un comando
-├── setup_master.sh       # instalador maestro (secciones idempotentes)
-├── config/               # dotfiles → ~/.config (niri, noctalia, foot)
-├── local-bin/            # atajos horus-* → ~/.local/bin
-├── branding/             # logo y config de fastfetch (el tema los rota)
-├── sugar-dark-horus/     # tema de SDDM
-├── proyectar/            # utilidad de proyección a monitores
-├── system/               # servicios systemd (hook de energía)
-├── udev/                 # reglas (RGB del teclado)
-├── Wallpapers/  PFP/      # fondos y avatar
-└── horus_themes.py       # motor de color
-La rama `archive/wizard-temas-folders` conserva el estado anterior (wizard de instalación, selector multi-tema, recoloreo de carpetas de Thunar) por si alguna vez lo quiero de vuelta.
+1. **Seed** (`horus-seed`, servicio de sistema): un snapshot pineado de este repo viaja dentro del build de NixOS para que el primer boot tenga config de Niri/Noctalia/foot antes de SDDM — sin red, sin race.
+2. **Bootstrap** (`horus-bootstrap`, servicio de usuario): clona/actualiza este repo a `~/Horus-Project` al iniciar sesión y despliega config faltante sin pisar nada (`cp -rn`).
+3. **Runtime**: herramientas como `horus-theme` leen contenido (wallpapers, branding, fuentes de tema) desde el clon; el motor de color viaja con las herramientas en horus-nix.
 
-## Créditos
-
-Lo construyo y mantengo yo, un estudiante de Ingeniería Biomédica que en ratos libres juega con Python. Gracias por leer.
+`Wallpapers/base.svg` es el marcador que usan las herramientas para localizar este repo (`HORUS_DIR` lo sobreescribe).
